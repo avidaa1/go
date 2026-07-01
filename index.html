@@ -1,0 +1,2520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>AVIDAA GO - The Ancient Intelligence</title>
+<meta name="description" content="Go board game intelligence: AlphaGo, DeepMind, ancient origins, world masters, rules, AI vs AI live game, and why Go is the foundation of modern AI."/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src 'self' data:; connect-src 'none';"/>
+<meta http-equiv="X-Frame-Options" content="SAMEORIGIN"/>
+<meta name="referrer" content="no-referrer"/>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-G8M1YZQ8WF"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-G8M1YZQ8WF');</script>
+<style>
+/* ============================================================
+   AVIDAA GO - INK ON STONE
+   Design identity: East Asian editorial. Sumi ink. Rice paper.
+   Navy void. Brush-red accent. Absolutely nothing from HUB.
+   ============================================================ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  /* Core palette - ink on stone */
+  --void:     #070a0f;       /* deep navy-black background */
+  --stone:    #0e1219;       /* card backgrounds */
+  --slate:    #161d28;       /* raised surfaces */
+  --ink:      #1e2a38;       /* borders, lines */
+  --ink2:     rgba(255,255,255,.07);
+  --ink3:     rgba(255,255,255,.12);
+  /* Text */
+  --paper:    #e8e0d0;       /* primary text - aged rice paper */
+  --paper2:   rgba(232,224,208,.65);
+  --paper3:   rgba(232,224,208,.35);
+  /* Accents */
+  --vermil:   #c0392b;       /* vermilion red - brush/seal stamps */
+  --vermil2:  #e74c3c;
+  --sienna:   #a0522d;       /* warm brown */
+  --jade:     #2d8a6a;       /* jade green - subtle */
+  --gold-ink: #b8860b;       /* burnished gold */
+  --mist:     #8899aa;       /* grey mist */
+  --mist2:    #556677;
+  /* Board */
+  --kaya:     #c4913a;       /* kaya wood - authentic Go board */
+  --kaya2:    #a07830;
+  --line:     #7a5c20;       /* grid line color */
+  --s-black:  #111;          /* black stone */
+  --s-white:  #f0ede5;       /* white stone */
+  /* Spacing */
+  --r:        8px;
+  --rl:       12px;
+}
+html{scroll-behavior:smooth}
+body{
+  background:var(--void);
+  color:var(--paper);
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:15px;
+  line-height:1.75;
+  overflow-x:hidden;
+  min-height:100vh;
+}
+img,svg,canvas{max-width:100%;display:block}
+button{-webkit-appearance:none;appearance:none;cursor:pointer;font-family:inherit}
+
+/* ---- BRUSHSTROKE HERO TEXTURE ---- */
+body::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(14,18,25,.8) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 30% at 80% 20%, rgba(192,57,43,.04) 0%, transparent 60%);
+  pointer-events:none;
+  z-index:0;
+}
+
+/* ---- NAV - INK RIBBON ---- */
+nav{
+  position:sticky;top:0;z-index:200;
+  background:rgba(7,10,15,.96);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--ink);
+  padding:0;
+}
+/* Row 1: brand + back home */
+.nav-ribbon{
+  display:flex;align-items:center;
+  justify-content:space-between;
+  padding:.45rem .75rem;
+  border-bottom:1px solid var(--ink);
+  gap:.5rem;
+}
+.nav-wordmark{
+  font-family:'Segoe UI',sans-serif;
+  font-size:11px;font-weight:900;
+  letter-spacing:4px;color:var(--paper3);
+  text-transform:uppercase;
+  white-space:nowrap;
+}
+.nav-wordmark span{color:var(--vermil2);letter-spacing:2px;}
+/* Row 2: tab grid — 5 equal columns, always 2 rows of 5 */
+.nav-scroll{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  width:100%;
+}
+.nav-pill{
+  background:none;border:none;
+  color:var(--paper3);font-family:Georgia,serif;
+  font-size:11px;font-style:italic;
+  padding:.42rem .5rem;
+  text-align:center;
+  border-right:1px solid var(--ink);
+  border-bottom:1px solid var(--ink);
+  transition:color .18s,background .18s;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.nav-pill:nth-child(6n){border-right:none}
+.nav-pill:nth-last-child(-n+6){border-bottom:none}
+.nav-pill:hover{color:var(--paper);background:var(--ink2)}
+.nav-pill.active{color:var(--vermil2);background:rgba(192,57,43,.06);font-style:normal;font-weight:700}
+#back-home{
+  font-family:'Segoe UI',sans-serif;
+  font-size:10px;font-weight:900;letter-spacing:2px;
+  text-decoration:none;flex-shrink:0;
+  background:linear-gradient(90deg,#f97316,#facc15,#4ade80,#22d3ee,#a855f7);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;border:1px solid var(--ink3);
+  border-radius:4px;padding:4px 8px;
+  white-space:nowrap;
+}
+
+/* ---- PAGES ---- */
+.page{display:none;position:relative;z-index:1}
+.page.active{display:block}
+.wrap{max-width:1100px;margin:0 auto;padding:2.5rem 1.25rem}
+
+/* ---- SECTION STAMPS ---- */
+.stamp{
+  display:inline-block;
+  font-family:'Segoe UI',sans-serif;
+  font-size:9px;font-weight:900;letter-spacing:2.5px;
+  text-transform:uppercase;
+  border:1px solid currentColor;
+  border-radius:2px;
+  padding:3px 10px;
+  margin-bottom:.75rem;
+}
+.stamp-red{color:var(--vermil2);border-color:rgba(231,76,60,.4);background:rgba(192,57,43,.08)}
+.stamp-jade{color:#3dbd90;border-color:rgba(61,189,144,.35);background:rgba(45,138,106,.07)}
+.stamp-gold{color:#d4a84b;border-color:rgba(184,134,11,.35);background:rgba(184,134,11,.07)}
+.stamp-mist{color:var(--mist);border-color:rgba(136,153,170,.3);background:rgba(136,153,170,.05)}
+
+/* ---- HERO ---- */
+.hero{
+  padding:5rem 1.25rem 3.5rem;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+.hero-grid-bg{
+  position:absolute;inset:0;
+  opacity:.025;
+  background-image:
+    linear-gradient(var(--kaya) 1px,transparent 1px),
+    linear-gradient(90deg,var(--kaya) 1px,transparent 1px);
+  background-size:40px 40px;
+  pointer-events:none;
+}
+.hero-kanji{
+  font-size:clamp(4rem,15vw,9rem);
+  font-family:serif;
+  color:var(--ink3);
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  pointer-events:none;
+  user-select:none;
+  letter-spacing:-.05em;
+  line-height:1;
+  z-index:0;
+}
+.hero-content{position:relative;z-index:1}
+.hero h1{
+  font-family:Georgia,serif;
+  font-size:clamp(2.2rem,6vw,4.5rem);
+  font-weight:400;
+  font-style:italic;
+  color:var(--paper);
+  letter-spacing:-.02em;
+  line-height:1.1;
+  margin-bottom:.6rem;
+}
+.hero h1 em{
+  font-style:normal;
+  color:var(--vermil2);
+}
+.hero-rule{
+  width:60px;height:1px;
+  background:linear-gradient(90deg,transparent,var(--vermil),transparent);
+  margin:.8rem auto 1.2rem;
+}
+.hero-sub{
+  font-size:clamp(12px,2vw,15px);
+  color:var(--paper2);
+  max-width:540px;margin:0 auto 2.5rem;
+  font-style:italic;
+  line-height:1.8;
+}
+.hero-stones{
+  display:flex;gap:1.5rem;justify-content:center;flex-wrap:wrap;
+}
+.hero-stone{
+  display:flex;align-items:center;gap:.6rem;
+  font-family:'Segoe UI',sans-serif;
+  font-size:10px;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--mist);
+}
+.hero-stone .dot{
+  width:10px;height:10px;border-radius:50%;flex-shrink:0;
+}
+.hero-stone .dot.b{background:#222;border:1px solid #555}
+.hero-stone .dot.w{background:#e8e0d0;border:1px solid #999}
+.hero-val{color:var(--paper);font-weight:700;font-size:13px;font-style:normal;font-family:Georgia,serif}
+
+/* ---- CHAPTER CARDS (home grid) ---- */
+.chapter-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  gap:1px;
+  border:1px solid var(--ink);
+  border-radius:var(--rl);
+  overflow:hidden;
+  margin-top:2rem;
+}
+.chapter{
+  background:var(--stone);
+  padding:1.5rem;
+  cursor:pointer;
+  transition:background .18s;
+  border-right:1px solid var(--ink);
+  border-bottom:1px solid var(--ink);
+  position:relative;
+}
+.chapter:hover{background:var(--slate)}
+.chapter::before{
+  content:attr(data-num);
+  position:absolute;top:.75rem;right:1rem;
+  font-family:Georgia,serif;font-size:2rem;
+  color:var(--ink3);font-style:italic;
+  line-height:1;
+}
+.chapter-em{font-size:1.6rem;margin-bottom:.6rem}
+.chapter-title{
+  font-family:Georgia,serif;font-size:14px;
+  font-style:italic;color:var(--paper);
+  margin-bottom:.35rem;
+}
+.chapter-desc{font-size:11px;color:var(--paper3);line-height:1.65;font-family:'Segoe UI',sans-serif}
+.chapter.featured{background:var(--slate);border-color:rgba(192,57,43,.25)}
+.chapter.featured .chapter-title{color:var(--vermil2)}
+
+/* ---- TEXT BODY ---- */
+.prose{font-family:Georgia,serif;font-size:14px;color:var(--paper2);line-height:1.85;max-width:720px}
+.prose p{margin-bottom:1rem}
+.prose strong{color:var(--paper);font-weight:700}
+h2.sec-title{
+  font-family:Georgia,serif;font-size:clamp(1.4rem,3vw,2rem);
+  font-weight:400;font-style:italic;
+  color:var(--paper);margin-bottom:.4rem;
+}
+.divider{
+  width:100%;height:1px;
+  background:linear-gradient(90deg,transparent,var(--ink3),transparent);
+  margin:2rem 0;
+}
+.red-rule{
+  width:40px;height:2px;
+  background:var(--vermil);
+  margin:.5rem 0 1.25rem;
+}
+
+/* ---- PULL QUOTES ---- */
+.pull-quote{
+  border-left:3px solid var(--vermil);
+  padding:.75rem 1.25rem;
+  margin:1.5rem 0;
+  background:rgba(192,57,43,.04);
+  border-radius:0 var(--r) var(--r) 0;
+}
+.pull-quote p{
+  font-family:Georgia,serif;font-size:15px;
+  font-style:italic;color:var(--paper);
+  margin:0 0 .35rem;
+}
+.pull-quote cite{font-size:10px;color:var(--mist);letter-spacing:1.5px;text-transform:uppercase;font-style:normal;font-family:'Segoe UI',sans-serif}
+
+/* ---- DATA PANELS ---- */
+.panel{
+  background:var(--stone);
+  border:1px solid var(--ink);
+  border-radius:var(--rl);
+  padding:1.5rem;
+  margin-bottom:1.25rem;
+}
+.panel-title{
+  font-family:'Segoe UI',sans-serif;
+  font-size:10px;font-weight:900;letter-spacing:2px;
+  text-transform:uppercase;color:var(--mist2);
+  margin-bottom:1rem;
+  display:flex;align-items:center;gap:.5rem;
+}
+.panel-title::after{
+  content:'';flex:1;height:1px;
+  background:var(--ink);
+}
+.two-col{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.25rem}
+.three-col{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.25rem}
+
+/* ---- LINEAGE CARDS ---- */
+.lineage{
+  display:flex;flex-direction:column;gap:0;
+  border:1px solid var(--ink);border-radius:var(--rl);overflow:hidden;
+  margin-bottom:2rem;
+}
+.lineage-item{
+  background:var(--stone);
+  padding:1.25rem 1.5rem;
+  border-bottom:1px solid var(--ink);
+  position:relative;
+  transition:background .15s;
+}
+.lineage-item:last-child{border-bottom:none}
+.lineage-item:hover{background:var(--slate)}
+.lineage-item::before{
+  content:'';position:absolute;
+  left:0;top:0;bottom:0;width:3px;
+  background:var(--vermil);
+  opacity:0;transition:opacity .15s;
+}
+.lineage-item:hover::before{opacity:1}
+.lineage-year{
+  font-family:'Segoe UI',sans-serif;
+  font-size:9px;font-weight:900;letter-spacing:2px;
+  color:var(--vermil2);text-transform:uppercase;
+  margin-bottom:.3rem;
+}
+.lineage-title{
+  font-family:Georgia,serif;font-size:14px;
+  font-style:italic;color:var(--paper);
+  margin-bottom:.4rem;
+}
+.lineage-body{font-size:12px;color:var(--paper2);line-height:1.7;font-family:'Segoe UI',sans-serif}
+
+/* ---- MASTER PROFILES ---- */
+.master{
+  background:var(--stone);border:1px solid var(--ink);
+  border-radius:var(--rl);padding:1.25rem;
+  margin-bottom:1rem;
+  display:grid;grid-template-columns:64px 1fr;gap:1rem;
+  align-items:start;
+  transition:border-color .18s;
+}
+.master:hover{border-color:rgba(192,57,43,.3)}
+.master-seal{
+  width:64px;height:64px;border-radius:50%;
+  background:var(--slate);
+  border:2px solid var(--ink);
+  display:flex;align-items:center;justify-content:center;
+  font-size:2rem;
+  flex-shrink:0;
+}
+.master-name{font-family:Georgia,serif;font-size:16px;font-style:italic;color:var(--paper);margin-bottom:2px}
+.master-country{font-family:'Segoe UI',sans-serif;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--mist2);margin-bottom:.4rem}
+.master-rank{font-family:'Segoe UI',sans-serif;font-size:11px;color:var(--vermil2);font-weight:700;margin-bottom:.5rem}
+.master-bio{font-size:12px;color:var(--paper2);line-height:1.7;font-family:'Segoe UI',sans-serif}
+
+/* ---- COMPARE TABLE ---- */
+.cmp{width:100%;border-collapse:collapse}
+.cmp th{
+  font-family:'Segoe UI',sans-serif;
+  font-size:9px;font-weight:900;letter-spacing:2px;
+  text-transform:uppercase;color:var(--mist2);
+  padding:.75rem 1rem;
+  border-bottom:1px solid var(--ink);
+  text-align:left;
+}
+.cmp td{
+  padding:.65rem 1rem;
+  border-bottom:1px solid var(--ink2);
+  font-size:12px;color:var(--paper2);
+  font-family:'Segoe UI',sans-serif;
+  vertical-align:top;
+}
+.cmp tr:last-child td{border-bottom:none}
+.cmp td:first-child{color:var(--mist);font-size:11px;font-style:italic;font-family:Georgia,serif}
+.cmp td:nth-child(2){color:var(--paper)}
+.cmp td:nth-child(3){color:var(--jade)}
+.cmp tr:hover td{background:var(--ink2)}
+.cmp-head{font-family:Georgia,serif;font-size:15px;font-style:italic;font-weight:400;color:var(--paper);padding-left:1rem}
+
+/* ---- TIMELINE ---- */
+.tl{position:relative;padding-left:2.5rem}
+.tl::before{
+  content:'';position:absolute;
+  left:10px;top:0;bottom:0;width:1px;
+  background:linear-gradient(to bottom,var(--vermil),var(--ink3));
+}
+.tl-entry{position:relative;margin-bottom:1.75rem}
+.tl-dot{
+  position:absolute;left:-2.25rem;top:4px;
+  width:11px;height:11px;border-radius:50%;
+  background:var(--void);border:2px solid var(--vermil);
+  flex-shrink:0;
+}
+.tl-dot.ai{border-color:#3dbd90;background:rgba(61,189,144,.15)}
+.tl-year{
+  font-family:'Segoe UI',sans-serif;
+  font-size:9px;font-weight:900;letter-spacing:2px;
+  color:var(--vermil2);text-transform:uppercase;margin-bottom:3px;
+}
+.tl-title{font-family:Georgia,serif;font-size:13px;font-style:italic;color:var(--paper);margin-bottom:4px}
+.tl-desc{font-size:11px;color:var(--paper3);line-height:1.65;font-family:'Segoe UI',sans-serif}
+
+/* ---- RULES ACCORDION ---- */
+.diff-row{display:flex;gap:0;border:1px solid var(--ink);border-radius:var(--r);overflow:hidden;margin-bottom:1.5rem}
+.diff-btn{
+  flex:1;background:var(--stone);border:none;border-right:1px solid var(--ink);
+  color:var(--paper3);font-family:Georgia,serif;font-size:12px;font-style:italic;
+  padding:.6rem .5rem;text-align:center;transition:.15s;
+}
+.diff-btn:last-child{border-right:none}
+.diff-btn:hover{background:var(--slate);color:var(--paper)}
+.diff-btn.active{background:rgba(192,57,43,.1);color:var(--vermil2);font-style:normal;font-weight:700}
+.acc{border-top:1px solid var(--ink)}
+.acc-row{border-bottom:1px solid var(--ink2)}
+.acc-row:last-child{border-bottom:none}
+.acc-btn{
+  width:100%;background:none;border:none;
+  color:var(--paper2);font-family:Georgia,serif;font-size:13px;font-style:italic;
+  padding:.85rem 0;text-align:left;
+  display:flex;justify-content:space-between;align-items:center;gap:.5rem;
+}
+.acc-btn:hover{color:var(--paper)}
+.acc-caret{font-size:9px;color:var(--mist2);transition:transform .18s;flex-shrink:0}
+.acc-body{display:none;padding:.1rem 0 1rem;font-size:12px;color:var(--paper3);line-height:1.75;font-family:'Segoe UI',sans-serif}
+.acc-body.open{display:block}
+.acc-caret.open{transform:rotate(180deg)}
+
+/* ---- AI vs AI BOARD ---- */
+.gs-shell{
+  background:var(--stone);border:1px solid var(--ink);
+  border-radius:16px;overflow:hidden;
+  margin-bottom:2rem;
+}
+.gs-top{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1rem 1.5rem;border-bottom:1px solid var(--ink);
+  flex-wrap:wrap;gap:.75rem;
+  background:var(--void);
+}
+.gs-ttl{
+  font-family:Georgia,serif;font-size:15px;font-style:italic;
+  color:var(--paper);
+}
+.gs-badge{
+  font-family:'Segoe UI',sans-serif;
+  font-size:9px;font-weight:900;letter-spacing:2px;
+  text-transform:uppercase;padding:3px 10px;
+  border-radius:20px;
+  background:rgba(192,57,43,.12);color:var(--vermil2);
+  border:1px solid rgba(192,57,43,.3);
+}
+.gs-badge.live{animation:blink 1.4s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+.gs-players{
+  display:grid;grid-template-columns:1fr auto 1fr;
+  align-items:center;gap:1rem;
+  padding:1rem 1.5rem;
+  border-bottom:1px solid var(--ink);
+}
+.gs-player{
+  text-align:center;padding:.75rem;
+  background:rgba(255,255,255,.02);border-radius:var(--r);
+}
+.gs-pname{font-family:Georgia,serif;font-size:13px;font-style:italic;color:var(--paper);margin-bottom:.2rem}
+.gs-ptag{font-family:'Segoe UI',sans-serif;font-size:9px;color:var(--mist2);letter-spacing:1px;text-transform:uppercase;margin-bottom:.4rem}
+.gs-pcap{font-size:22px;font-weight:900;color:var(--paper);font-family:Georgia,serif}
+.gs-vs{
+  font-family:Georgia,serif;font-size:13px;
+  color:var(--mist2);font-style:italic;text-align:center;
+}
+.gs-body{
+  display:flex;flex-direction:column;align-items:center;
+  padding:1.25rem 1.5rem;gap:1rem;
+}
+.gs-status-line{
+  font-family:Georgia,serif;font-size:12px;font-style:italic;
+  color:var(--paper2);text-align:center;min-height:20px;
+}
+.gs-bar{display:flex;height:4px;width:100%;border-radius:2px;overflow:hidden;background:var(--ink)}
+.gs-bar-b{background:var(--mist2);transition:width .5s}
+.gs-bar-w{background:var(--paper3);transition:width .5s}
+#gs-canvas{border-radius:4px;cursor:default}
+.gs-btns{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center}
+.gs-btn{
+  background:var(--slate);border:1px solid var(--ink3);
+  border-radius:4px;color:var(--paper2);
+  font-family:'Segoe UI',sans-serif;font-size:11px;font-weight:600;
+  padding:5px 13px;transition:.15s;letter-spacing:.5px;
+}
+.gs-btn:hover{background:var(--ink);color:var(--paper)}
+.gs-btn.go-btn{background:rgba(192,57,43,.1);border-color:rgba(192,57,43,.35);color:var(--vermil2)}
+.gs-btn.go-btn:hover{background:rgba(192,57,43,.18)}
+.gs-btn.sp-active{background:rgba(61,189,144,.08);border-color:rgba(61,189,144,.3);color:#3dbd90}
+.gs-btn.danger{background:rgba(200,100,0,.08);border-color:rgba(200,100,0,.3);color:#c8640a}
+.gs-log{
+  width:100%;background:var(--void);border-radius:var(--r);
+  padding:.75rem 1rem;max-height:110px;overflow-y:auto;
+  scrollbar-width:thin;scrollbar-color:var(--ink) transparent;
+}
+.gs-le{
+  font-family:monospace;font-size:10px;color:var(--mist2);
+  padding:2px 0;border-bottom:1px solid var(--ink2);
+}
+.gs-le:last-child{border:none}
+.gs-le .mn{color:#d4a84b;font-weight:700}
+.gs-le .mb{color:#bbb}.gs-le .mw{color:#ddd}
+
+/* ---- QUIZ ---- */
+.quiz-q{
+  font-family:Georgia,serif;font-size:15px;font-style:italic;
+  color:var(--paper);margin-bottom:1.25rem;line-height:1.7;
+}
+.quiz-opts{display:flex;flex-direction:column;gap:.5rem;margin-bottom:1rem}
+.quiz-opt{
+  background:var(--slate);border:1px solid var(--ink);
+  border-radius:var(--r);color:var(--paper2);
+  font-family:'Segoe UI',sans-serif;font-size:12px;
+  padding:.65rem 1rem;text-align:left;transition:.15s;
+}
+.quiz-opt:hover{border-color:var(--ink3);background:var(--ink)}
+.quiz-opt.correct{background:rgba(45,138,106,.1);border-color:rgba(61,189,144,.4);color:#3dbd90}
+.quiz-opt.wrong{background:rgba(192,57,43,.08);border-color:rgba(192,57,43,.3);color:var(--vermil2)}
+.quiz-fb{font-family:'Segoe UI',sans-serif;font-size:11px;color:var(--paper3);line-height:1.65;min-height:36px;padding:.5rem 0;font-style:italic}
+.quiz-sc{font-family:Georgia,serif;font-size:2rem;font-style:italic;color:var(--paper);text-align:center}
+
+/* ---- FOOTER ---- */
+footer{
+  text-align:center;padding:2.5rem 1rem;
+  border-top:1px solid var(--ink);
+  margin-top:4rem;position:relative;z-index:1;
+}
+.footer-kanji{font-size:1.5rem;color:var(--ink3);margin-bottom:.5rem}
+.footer-sig{
+  font-family:'Segoe UI',sans-serif;
+  font-size:9px;letter-spacing:3px;color:var(--mist2);text-transform:uppercase;
+}
+.footer-sig em{color:var(--vermil2);font-style:normal}
+
+/* ---- MOBILE ---- */
+@media(max-width:600px){
+  .hero{padding:3rem .75rem 2rem}
+  .wrap{padding:1.5rem .75rem}
+  .nav-ribbon{padding:.4rem .6rem}
+  .nav-wordmark{display:none}
+  .nav-pill{font-size:10px;padding:.38rem .3rem}
+  .gs-players{grid-template-columns:1fr auto 1fr;gap:.5rem}
+  .two-col,.three-col{grid-template-columns:1fr}
+  .chapter-grid{grid-template-columns:1fr}
+  .cmp{font-size:11px}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-ribbon">
+    <div class="nav-wordmark">AVIDAA <span>GO</span></div>
+    <a id="back-home" href="https://avidaa1.github.io" target="_blank">AVIDAA</a>
+  </div>
+  <div class="nav-scroll" id="nav-scroll"></div>
+</nav>
+
+<!-- HOME -->
+<div class="page active" id="page-home">
+  <div class="hero">
+    <div class="hero-grid-bg"></div>
+    <div class="hero-kanji">&#x56F2;&#x68CB;</div>
+    <div class="hero-content">
+      <div class="stamp stamp-red" style="margin-bottom:1.25rem">Ancient Intelligence</div>
+      <h1>The Game That<br/><em>Broke</em> the Machine</h1>
+      <div class="hero-rule"></div>
+      <p class="hero-sub">Go. Weiqi. Baduk. Four thousand years old. Ten to the power of one hundred and seventy possible positions. The last frontier that forced artificial intelligence to think like a human.</p>
+      <div class="hero-stones">
+        <div class="hero-stone"><div class="dot b"></div><span>Origin</span><span class="hero-val">~2500 BC</span></div>
+        <div class="hero-stone"><div class="dot w"></div><span>Positions</span><span class="hero-val">10&#x00B9;&#x2077;&#x2070;</span></div>
+        <div class="hero-stone"><div class="dot b"></div><span>Conquered</span><span class="hero-val">2016</span></div>
+        <div class="hero-stone"><div class="dot w"></div><span>Global players</span><span class="hero-val">50M+</span></div>
+        <div class="hero-stone"><div class="dot b"></div><span>Rank levels</span><span class="hero-val">35</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="chapter-grid">
+      <div class="chapter featured" data-num="I" onclick="go('play')"><div class="chapter-em">&#x25CF;</div><div class="chapter-title">AI vs AI — Live Game</div><div class="chapter-desc">Two AI engines play a complete game in real time. Full capture logic, ko rule, territory scoring. Watch strategy emerge.</div></div>
+      <div class="chapter" data-num="II" onclick="go('origins')"><div class="chapter-em">&#x5C71;</div><div class="chapter-title">Ancient Origins</div><div class="chapter-desc">China, 2500 BC. Weiqi to Baduk to Go. The oldest continuously played board game in recorded history.</div></div>
+      <div class="chapter" data-num="III" onclick="go('rules')"><div class="chapter-em">&#x26AB;</div><div class="chapter-title">Rules &amp; Play</div><div class="chapter-desc">Liberties, capture, ko, scoring. Four levels from first stone to professional insight.</div></div>
+      <div class="chapter" data-num="IV" onclick="go('alphago')"><div class="chapter-em">&#x1F9E0;</div><div class="chapter-title">AlphaGo &amp; DeepMind</div><div class="chapter-desc">Fan. Lee. Master. Zero. AlphaZero. MuZero. The complete lineage of the AI that changed everything.</div></div>
+      <div class="chapter" data-num="V" onclick="go('masters')"><div class="chapter-em">&#x5C06;</div><div class="chapter-title">World Masters</div><div class="chapter-desc">Lee Sedol, Ke Jie, Gu Li, Fan Hui. The humans who defined the summit before and after the machine arrived.</div></div>
+      <div class="chapter" data-num="VI" onclick="go('aigo')"><div class="chapter-em">&#x221E;</div><div class="chapter-title">Why Go Defines AI</div><div class="chapter-desc">MCTS, policy networks, self-play RL. Techniques born here now drive medicine, physics, climate, and protein science.</div></div>
+      <div class="chapter" data-num="VII" onclick="go('compare')"><div class="chapter-em">&#x265F;</div><div class="chapter-title">Go vs Chess</div><div class="chapter-desc">Two ancient games. AI conquered Chess in 1997, Go in 2016. The 19-year gap reveals a fundamental difference in machine intelligence.</div></div>
+      <div class="chapter" data-num="VIII" onclick="go('timeline')"><div class="chapter-em">&#x2503;</div><div class="chapter-title">Timeline</div><div class="chapter-desc">2500 BC to 2026. Ancient clay to DeepMind. Every inflection point in one unbroken line.</div></div>
+      <div class="chapter" data-num="IX" onclick="go('quiz')"><div class="chapter-em">&#x2B55;</div><div class="chapter-title">Intelligence Quiz</div><div class="chapter-desc">Ten questions. History, rules, AlphaGo, world masters. The board does not lie about what you know.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- AI vs AI -->
+<div class="page" id="page-play">
+  <div class="wrap">
+    <div class="stamp stamp-red">Live</div>
+    <h2 class="sec-title">AI vs AI &#x2014; The GameShow</h2>
+    <div class="red-rule"></div>
+    <p class="prose" style="margin-bottom:2rem">Two AI engines compete on a 9&#xD7;9 board. Real capture logic. Ko rule enforced. Territory scored at game end with 6.5 komi. Neither engine has seen this game before.</p>
+
+    <div class="gs-shell">
+      <div class="gs-top">
+        <div class="gs-ttl">&#x25CF; Black Engine &nbsp;&#xD7;&nbsp; &#x25CB; White Engine</div>
+        <div class="gs-badge" id="gs-badge">Ready</div>
+      </div>
+      <div class="gs-players">
+        <div class="gs-player">
+          <div class="gs-pname">&#x25CF; Black AI</div>
+          <div class="gs-ptag">Aggressive &#xB7; Center</div>
+          <div class="gs-pcap" id="gs-b-cap">0</div>
+          <div class="gs-ptag" style="margin-top:.2rem">captures</div>
+        </div>
+        <div class="gs-vs">versus</div>
+        <div class="gs-player">
+          <div class="gs-pname">&#x25CB; White AI</div>
+          <div class="gs-ptag">Defensive &#xB7; Edge</div>
+          <div class="gs-pcap" id="gs-w-cap">0</div>
+          <div class="gs-ptag" style="margin-top:.2rem">captures</div>
+        </div>
+      </div>
+      <div class="gs-body">
+        <div class="gs-bar"><div class="gs-bar-b" id="gs-bar-b" style="width:50%"></div><div class="gs-bar-w" id="gs-bar-w" style="width:50%"></div></div>
+        <div class="gs-status-line" id="gs-status">Press Start to begin the game</div>
+        <canvas id="gs-canvas" width="324" height="324"></canvas>
+        <div class="gs-btns">
+          <button class="gs-btn go-btn" id="gs-start-btn" onclick="gsStart()">&#x25B6; Start Game</button>
+          <button class="gs-btn" id="gs-pause-btn" onclick="gsPause()" disabled>&#x23F8; Pause</button>
+          <button class="gs-btn danger" onclick="gsReset()">&#x21BA; Reset</button>
+          <button class="gs-btn" onclick="gsSpeed(800)" id="sp-slow">Slow</button>
+          <button class="gs-btn sp-active" onclick="gsSpeed(380)" id="sp-med">Normal</button>
+          <button class="gs-btn" onclick="gsSpeed(110)" id="sp-fast">Fast</button>
+        </div>
+        <div class="gs-log" id="gs-log"><div class="gs-le" style="color:var(--mist2)">&#x2014; move log &#x2014;</div></div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-title">How the AI plays</div>
+        <div style="font-family:'Segoe UI',sans-serif;font-size:12px;color:var(--paper2);line-height:1.8">
+          <div style="margin-bottom:.5rem"><span style="color:var(--vermil2);font-weight:700">1.</span> Capture first &#x2014; if opponent has zero liberties remaining, take them</div>
+          <div style="margin-bottom:.5rem"><span style="color:var(--vermil2);font-weight:700">2.</span> Atari threat &#x2014; reduce opponent groups to one liberty</div>
+          <div style="margin-bottom:.5rem"><span style="color:var(--vermil2);font-weight:700">3.</span> Connect own stones &#x2014; build living groups</div>
+          <div style="margin-bottom:.5rem"><span style="color:var(--vermil2);font-weight:700">4.</span> Ko rule &#x2014; no move may recreate the previous board state</div>
+          <div style="margin-bottom:.5rem"><span style="color:var(--vermil2);font-weight:700">5.</span> Self-capture blocked &#x2014; never reduce own liberties to zero</div>
+          <div style="margin-bottom:.5rem"><span style="color:var(--vermil2);font-weight:700">6.</span> Black biases center, White biases edges and corners</div>
+          <div><span style="color:var(--vermil2);font-weight:700">7.</span> Weighted random among top candidates &#x2014; prevents loops</div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Concepts visible in play</div>
+        <div style="font-family:'Segoe UI',sans-serif;font-size:12px;color:var(--paper2);line-height:1.8">
+          <div style="margin-bottom:.5rem"><span style="color:#3dbd90;font-weight:700">Groups</span> &#x2014; connected same-color stones act as one unit</div>
+          <div style="margin-bottom:.5rem"><span style="color:#3dbd90;font-weight:700">Liberties</span> &#x2014; adjacent empty points. Zero = captured</div>
+          <div style="margin-bottom:.5rem"><span style="color:#3dbd90;font-weight:700">Capture</span> &#x2014; fill all liberties of a group to remove it</div>
+          <div style="margin-bottom:.5rem"><span style="color:#3dbd90;font-weight:700">Ko</span> &#x2014; infinite loops prevented by board hash</div>
+          <div style="margin-bottom:.5rem"><span style="color:#3dbd90;font-weight:700">Territory</span> &#x2014; empty points enclosed by one color at end</div>
+          <div style="margin-bottom:.5rem"><span style="color:#3dbd90;font-weight:700">Komi</span> &#x2014; 6.5 points to White for Black moving first</div>
+          <div><span style="color:#3dbd90;font-weight:700">Score bar</span> &#x2014; relative stone count shown above board</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ORIGINS -->
+<div class="page" id="page-origins">
+  <div class="wrap">
+    <div class="stamp stamp-gold">History</div>
+    <h2 class="sec-title">Ancient Origins</h2>
+    <div class="red-rule"></div>
+    <div class="two-col" style="margin-bottom:2rem">
+      <div class="prose">
+        <p>Go was born in China as Weiqi &#x2014; &#x56F2;&#x68CB;, the <em>surrounding game</em> &#x2014; approximately 2500 to 3000 years before the common era. Chinese legend attributes it to Emperor Yao, who created it to develop in his son the qualities of discipline, concentration, and strategic foresight.</p>
+        <p>By the time of Confucius around 500 BC, Weiqi had already existed for centuries. It was listed among the <em>Four Arts of the Scholar</em> &#x2014; alongside calligraphy, painting, and the guqin &#x2014; marking it as a measure of educated civilization rather than mere entertainment.</p>
+      </div>
+      <div class="prose">
+        <p>Go reached Korea along trade routes, where it became <em>Baduk</em>, developing its own distinct professional tradition and culture. Japan adopted it in the 7th century AD, embedding it in Samurai culture and Zen Buddhist philosophy as <em>Igo</em>. In the Edo period, Japan formalized professional Go with four competing schools and government stipends for master players.</p>
+        <p>The three names &#x2014; Weiqi, Baduk, Go &#x2014; describe the same game. The English-speaking world adopted the Japanese name. Each tradition carries its own lineage, aesthetics, and style of play to this day.</p>
+      </div>
+    </div>
+    <div class="pull-quote">
+      <p>The superior man does not, even for the space of a single meal, act contrary to virtue. In moments of haste, he cleaves to it. In seasons of danger, he cleaves to it.</p>
+      <cite>Confucius &#x2014; the civilization that gave us Go</cite>
+    </div>
+    <div class="divider"></div>
+    <div class="panel">
+      <div class="panel-title">Names across cultures</div>
+      <table class="cmp">
+        <thead><tr><th>Country</th><th class="cmp-head" style="font-size:12px;padding:.5rem 1rem">Name</th><th>Characters</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td>China</td><td style="color:var(--paper)">Weiqi</td><td>&#x56F2;&#x68CB;</td><td>Surrounding Chess</td></tr>
+          <tr><td>South Korea</td><td style="color:var(--paper)">Baduk</td><td>&#xBC14;&#xB451;</td><td>Ancient origin, debated</td></tr>
+          <tr><td>Japan</td><td style="color:var(--paper)">Go / Igo</td><td>&#x56F2;&#x68CB;</td><td>Surrounding Chess</td></tr>
+          <tr><td>Taiwan</td><td style="color:var(--paper)">Weichi</td><td>&#x570D;&#x68CB;</td><td>Traditional characters</td></tr>
+          <tr><td>International</td><td style="color:var(--paper)">Go</td><td>&#x2014;</td><td>Adopted from Japanese</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="panel" style="margin-top:1.25rem">
+      <div class="panel-title">Cultural weight</div>
+      <div class="prose" style="max-width:100%">
+        <p>Go was never purely entertainment in East Asian civilization. Sun Tzu&#x2019;s principles in <em>The Art of War</em> &#x2014; encirclement, deception, patience, reading the terrain &#x2014; map directly to Go strategy. Japanese Zen practitioners used Go to develop <em>mushin</em>: actionless action, presence without deliberation.</p>
+        <p>In South Korea, top professional players hold social status comparable to elite athletes. China&#x2019;s national Go team trains under government support from childhood. Japan&#x2019;s four major domestic titles carry combined prize funds exceeding &#xA5;100 million annually. Go at its peak is simultaneously a career, a sport, a philosophy, and an art.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RULES -->
+<div class="page" id="page-rules">
+  <div class="wrap">
+    <div class="stamp stamp-mist">How to Play</div>
+    <h2 class="sec-title">Rules of Go</h2>
+    <div class="red-rule"></div>
+    <p class="prose" style="margin-bottom:1.5rem;max-width:600px">The rules of Go are among the simplest of any game. The depth is bottomless. Choose your level.</p>
+    <div class="diff-row" id="diff-row">
+      <button class="diff-btn active" onclick="showDiff('beginner',this)">Beginner</button>
+      <button class="diff-btn" onclick="showDiff('intermediate',this)">Intermediate</button>
+      <button class="diff-btn" onclick="showDiff('advanced',this)">Advanced</button>
+      <button class="diff-btn" onclick="showDiff('professional',this)">Professional</button>
+    </div>
+    <div id="diff-content" class="panel"></div>
+    <div class="two-col" style="margin-top:1.5rem">
+      <div class="panel">
+        <div class="panel-title">Board sizes</div>
+        <table class="cmp">
+          <thead><tr><th>Size</th><th>Points</th><th>Avg game</th><th>Use</th></tr></thead>
+          <tbody>
+            <tr><td>9&#xD7;9</td><td style="color:var(--paper)">81</td><td>~30 moves</td><td>Beginners, AI demos</td></tr>
+            <tr><td>13&#xD7;13</td><td style="color:var(--paper)">169</td><td>~90 moves</td><td>Intermediate</td></tr>
+            <tr><td>19&#xD7;19</td><td style="color:var(--paper)">361</td><td>~200 moves</td><td>Professional standard</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Rank system</div>
+        <table class="cmp">
+          <thead><tr><th>Range</th><th>Level</th></tr></thead>
+          <tbody>
+            <tr><td>30&#x2013;20 kyu</td><td style="color:var(--paper)">Complete beginner</td></tr>
+            <tr><td>20&#x2013;10 kyu</td><td style="color:var(--paper)">Learning fundamentals</td></tr>
+            <tr><td>10&#x2013;1 kyu</td><td style="color:var(--paper)">Intermediate club player</td></tr>
+            <tr><td>1&#x2013;7 dan (amateur)</td><td style="color:var(--paper)">Strong amateur</td></tr>
+            <tr><td>1&#x2013;9 dan (pro)</td><td style="color:#d4a84b">Professional &#x2014; lifetime</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ALPHAGO -->
+<div class="page" id="page-alphago">
+  <div class="wrap">
+    <div class="stamp stamp-red">DeepMind</div>
+    <h2 class="sec-title">AlphaGo</h2>
+    <div class="red-rule"></div>
+    <div class="two-col" style="margin-bottom:2rem">
+      <div class="prose">
+        <p>When AlphaGo defeated Lee Sedol 4&#x2013;1 in March 2016, sixty million people across Asia watched live. Go grandmasters in the audience described its moves as alien &#x2014; plays no human would consider, that revealed themselves as genius on analysis. The consensus that Go would resist AI for decades collapsed in a single week.</p>
+      </div>
+      <div class="prose">
+        <p>Go has approximately 10<sup>170</sup> possible board positions &#x2014; a number that exceeds the atoms in the observable universe by ninety orders of magnitude. No brute-force computation could ever address it. AlphaGo required something new: machines that learned to <em>see</em> the board rather than count positions.</p>
+      </div>
+    </div>
+    <h3 style="font-family:'Segoe UI',sans-serif;font-size:10px;font-weight:900;letter-spacing:3px;color:var(--mist2);text-transform:uppercase;margin-bottom:1rem">The Lineage</h3>
+    <div class="lineage">
+      <div class="lineage-item"><div class="lineage-year">October 2015</div><div class="lineage-title">AlphaGo Fan</div><div class="lineage-body">Defeated Fan Hui, European Champion, 5&#x2013;0. First time a computer had beaten a professional Go player without handicap. Published in <em>Nature</em>. The Go world was skeptical &#x2014; Fan Hui was not considered world class. The skepticism would not survive spring.</div></div>
+      <div class="lineage-item"><div class="lineage-year">March 2016</div><div class="lineage-title">AlphaGo Lee &#x2014; The Cultural Earthquake</div><div class="lineage-body">Defeated Lee Sedol &#x2014; 18-time world champion &#x2014; 4&#x2013;1 in Seoul. Game 4, Move 78: Lee played a move that briefly dropped AlphaGo&#x2019;s confidence from 70% to below 50%. It is the only game any human has won against a top-tier Go AI under competition conditions. Lee retired in 2019, citing the impossibility of ever defeating AI again.</div></div>
+      <div class="lineage-item"><div class="lineage-year">January 2017</div><div class="lineage-title">AlphaGo Master</div><div class="lineage-body">Played anonymously online under the alias <em>Master</em>. Defeated every top player it faced &#x2014; 60 consecutive games, 60 wins. Then defeated Ke Jie, world number one, 3&#x2013;0 at the Future of Go Summit in Wuzhen. Ke Jie wept at the press conference. DeepMind announced AlphaGo would retire from competitive play.</div></div>
+      <div class="lineage-item"><div class="lineage-year">October 2017</div><div class="lineage-title">AlphaGo Zero &#x2014; Trained From Nothing</div><div class="lineage-body">No human game data. No human strategy. Started from random moves. Learned Go entirely through self-play in 40 days, then defeated AlphaGo Lee 100&#x2013;0. Independently rediscovered joseki patterns humans had developed over centuries &#x2014; then went beyond them into territory human theory had never mapped.</div></div>
+      <div class="lineage-item"><div class="lineage-year">December 2017</div><div class="lineage-title">AlphaZero &#x2014; One Algorithm</div><div class="lineage-body">The same architecture applied to Chess and Shogi with no domain-specific tuning. Mastered Chess in four hours, Shogi in two, Go in eight &#x2014; all to superhuman level. A single general learning algorithm that defeated the best specialized programs ever built for each game separately.</div></div>
+      <div class="lineage-item"><div class="lineage-year">2019</div><div class="lineage-title">MuZero &#x2014; Without Rules</div><div class="lineage-body">AlphaZero without even being told the rules of the game. MuZero learned Go, Chess, Shogi, and 57 Atari games without being given any rule set. It built its own internal model of how games function, purely from experience. The machine that teaches itself what reality is.</div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Technical architecture</div>
+      <div style="font-family:'Segoe UI',sans-serif;font-size:12px;color:var(--paper2);line-height:1.8">
+        <p style="margin-bottom:.75rem"><span style="color:var(--vermil2);font-weight:700">Policy Network</span> &#x2014; Trained on 30 million professional game moves. Learned which moves are worth considering, reducing the search tree from ~250 candidates to 2&#x2013;5. The machine&#x2019;s intuition about what matters.</p>
+        <p style="margin-bottom:.75rem"><span style="color:var(--vermil2);font-weight:700">Value Network</span> &#x2014; Outputs a single number from -1 to +1 estimating who is winning from any board position. Replaced expensive full-game simulations with a learned judgment.</p>
+        <p style="margin-bottom:.75rem"><span style="color:var(--vermil2);font-weight:700">Monte Carlo Tree Search</span> &#x2014; Explores future move sequences by running thousands of simulations. Guided by the policy network, evaluated by the value network. Balances exploration against exploitation.</p>
+        <p><span style="color:var(--vermil2);font-weight:700">Self-Play Reinforcement Learning</span> &#x2014; Millions of games played against itself. The version that wins more often survives. Evolutionary pressure applied to neural networks across time.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MASTERS -->
+<div class="page" id="page-masters">
+  <div class="wrap">
+    <div class="stamp stamp-gold">World Masters</div>
+    <h2 class="sec-title">The Greatest Players</h2>
+    <div class="red-rule"></div>
+    <p class="prose" style="margin-bottom:2rem">The humans who reached the summit of the most complex board game in existence.</p>
+    <div class="master"><div class="master-seal">&#x2694;&#xFE0F;</div><div><div class="master-name">Lee Sedol</div><div class="master-country">&#x1F1F0;&#x1F1F7; South Korea &#xB7; 9 Dan Professional</div><div class="master-rank">18 International Titles &#xB7; The Human Who Faced AlphaGo</div><div class="master-bio">Born 1983. Considered among the greatest Go players in history. Known for aggressive, creative moves that broke conventional theory. In March 2016 he played AlphaGo in the most-watched Go match ever, losing 4&#x2013;1 but winning Game 4 with Move 78 &#x2014; a move that shocked AlphaGo&#x2019;s own engineers as their system&#x2019;s confidence collapsed in real time. He retired in November 2019, stating: <em>&#x201C;Even if I become the number one, there is an entity that cannot be defeated.&#x201D;</em> His single win remains the only game any human has won against a top-tier Go AI under competition conditions.</div></div></div>
+    <div class="master"><div class="master-seal">&#x1F3C6;</div><div><div class="master-name">Ke Jie</div><div class="master-country">&#x1F1E8;&#x1F1F3; China &#xB7; 9 Dan Professional</div><div class="master-rank">World Ranked #1 (2016&#x2013;2020) &#xB7; 21+ International Titles</div><div class="master-bio">Born 1997. The world&#x2019;s top-ranked player during AlphaGo&#x2019;s peak dominance. Before their match he declared he alone could defeat it. He lost 3&#x2013;0, and wept at the press conference. Ke Jie subsequently became one of the first professionals to study AlphaGo&#x2019;s games systematically, improving his own play as a result. He remains among the world&#x2019;s top players.</div></div></div>
+    <div class="master"><div class="master-seal">&#x1F310;</div><div><div class="master-name">Fan Hui</div><div class="master-country">&#x1F1E8;&#x1F1F3;&#x1F1EB;&#x1F1F7; China / France &#xB7; 2 Dan Professional</div><div class="master-rank">European Go Champion &#xB7; First Professional Defeated by AI</div><div class="master-bio">Born 1981. The first professional Go player ever defeated by a computer &#x2014; lost to AlphaGo Fan 5&#x2013;0 in October 2015. Rather than retreating, he became a collaborator with DeepMind, helping train and evaluate the system. His unique position inside the AI lab gave him insights available to no other player. He studied AlphaGo&#x2019;s games obsessively and improved his ranking significantly as a result.</div></div></div>
+    <div class="master"><div class="master-seal">&#x9BE8;</div><div><div class="master-name">Gu Li</div><div class="master-country">&#x1F1E8;&#x1F1F3; China &#xB7; 9 Dan Professional</div><div class="master-rank">11 International Titles &#xB7; Lee Sedol&#x2019;s Greatest Human Rival</div><div class="master-bio">Born 1978. In 2013, Gu Li and Lee Sedol played 10 matches called the <em>Game of the Century</em> series. Lee won 6&#x2013;4. AI analysis years later confirmed the series produced some of the most complex positions ever reached in human play. Their rivalry defined an era of Go that ended when AlphaGo arrived.</div></div></div>
+    <div class="master"><div class="master-seal">&#x1F5FF;</div><div><div class="master-name">Lee Changho</div><div class="master-country">&#x1F1F0;&#x1F1F7; South Korea &#xB7; 9 Dan Professional</div><div class="master-rank">21 International Titles &#xB7; Dominated the 1990s&#x2013;2000s</div><div class="master-bio">Born 1975. Known as <em>Stone Buddha</em> for his famously expressionless, unflappable style. Dominated world Go from the mid-1990s through the mid-2000s &#x2014; a period of sustained dominance longer than any other player in the modern era. His endgame precision was described by contemporaries as superhuman. Held the record for most international titles for decades.</div></div></div>
+    <div class="divider"></div>
+    <div class="panel">
+      <div class="panel-title">Major international titles</div>
+      <table class="cmp">
+        <thead><tr><th>Title</th><th>Region</th><th>Founded</th><th>Prize</th></tr></thead>
+        <tbody>
+          <tr><td>Ing Cup</td><td style="color:var(--paper)">Taiwan / International</td><td>1988</td><td>$400,000 USD</td></tr>
+          <tr><td>Samsung Cup</td><td style="color:var(--paper)">Korea / International</td><td>1996</td><td>$300,000 USD</td></tr>
+          <tr><td>LG Cup</td><td style="color:var(--paper)">Korea / International</td><td>1999</td><td>$200,000 USD</td></tr>
+          <tr><td>Chunlan Cup</td><td style="color:var(--paper)">China / International</td><td>1999</td><td>$150,000 USD</td></tr>
+          <tr><td>Kisei</td><td style="color:var(--paper)">Japan (domestic)</td><td>1977</td><td>&#xA5;48,000,000</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- AI x GO -->
+<div class="page" id="page-aigo">
+  <div class="wrap">
+    <div class="stamp stamp-jade">Intelligence</div>
+    <h2 class="sec-title">Why Go Defines AI</h2>
+    <div class="red-rule"></div>
+    <div class="prose" style="margin-bottom:2rem">
+      <p>Chess fell to AI in 1997. Checkers was solved in 2007. Backgammon by 1992. Go resisted everything. The search space is 10<sup>120</sup> orders of magnitude larger than Chess. Every computational approach that worked elsewhere failed catastrophically on 19&#xD7;19 Go. AlphaGo required a fundamentally new kind of machine intelligence &#x2014; one that learned to see rather than count.</p>
+    </div>
+    <div class="pull-quote">
+      <p>The techniques we developed to play Go are now rewriting biology, physics, and chemistry. The board was always larger than the game.</p>
+      <cite>Demis Hassabis &#x2014; DeepMind founder</cite>
+    </div>
+    <div class="divider"></div>
+    <div class="lineage">
+      <div class="lineage-item"><div class="lineage-year">Technique</div><div class="lineage-title">Monte Carlo Tree Search</div><div class="lineage-body">Instead of evaluating every position &#x2014; impossible in Go &#x2014; MCTS samples thousands of complete game continuations and tracks which moves lead to wins more often. Combined with neural networks in AlphaGo, it became a general planning algorithm. Now used in robotics, protein design, drug discovery, materials science, and financial optimization.</div></div>
+      <div class="lineage-item"><div class="lineage-year">Technique</div><div class="lineage-title">Self-Play Reinforcement Learning</div><div class="lineage-body">AlphaGo Zero&#x2019;s training loop &#x2014; play yourself, update on outcomes, repeat millions of times &#x2014; is the direct ancestor of RLHF: Reinforcement Learning from Human Feedback, used to train every major language model including ChatGPT, Claude, and Gemini. The insight that you do not need labeled examples if you can generate your own signal generalized from Go to language, code, and reasoning.</div></div>
+      <div class="lineage-item"><div class="lineage-year">Technique</div><div class="lineage-title">Policy + Value Network Architecture</div><div class="lineage-body">AlphaGo&#x2019;s dual-network design &#x2014; one network for what moves to consider, one for who is winning &#x2014; introduced a split between exploration and evaluation that appears throughout modern AI. In language models: the policy network maps to token selection, the value network maps to reward modeling. DeepMind cited this architecture explicitly in AlphaFold and materials discovery work.</div></div>
+      <div class="lineage-item"><div class="lineage-year">2020&#x2013;2026</div><div class="lineage-title">Downstream Applications</div><div class="lineage-body"><strong style="color:#3dbd90">AlphaFold</strong> solved protein structure prediction using policy+value architecture from Go. A 50-year unsolved biology problem. <strong style="color:#3dbd90">AlphaCode</strong> applies MCTS-style exploration to program space. <strong style="color:#3dbd90">AlphaDev</strong> discovered faster sorting algorithms by treating CPU instruction sequences as a Go-like game. <strong style="color:#3dbd90">GNoMe</strong> found 2.2 million new materials using Go-style self-play over molecular configurations. <strong style="color:#3dbd90">DeepMind plasma control</strong> for nuclear fusion uses the same reinforcement learning loop developed on the 9&#xD7;9 board.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- GO vs CHESS -->
+<div class="page" id="page-compare">
+  <div class="wrap">
+    <div class="stamp stamp-mist">Comparison</div>
+    <h2 class="sec-title">Go versus Chess</h2>
+    <div class="red-rule"></div>
+    <p class="prose" style="margin-bottom:2rem">Both ancient. Both conquered by AI. The 19 years between conquests &#x2014; 1997 to 2016 &#x2014; mark a fundamental discontinuity in what machines can do.</p>
+    <div class="panel">
+      <table class="cmp" style="table-layout:fixed">
+        <thead>
+          <tr>
+            <th style="width:28%">Category</th>
+            <th class="cmp-head" style="color:var(--paper)">Go &#x25CF;</th>
+            <th class="cmp-head" style="color:#3dbd90">Chess &#x265F;</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Origin</td><td style="color:var(--paper)">~2500 BC China</td><td style="color:#3dbd90">~500 AD India</td></tr>
+          <tr><td>Board</td><td style="color:var(--paper)">19&#xD7;19 (361 pts)</td><td style="color:#3dbd90">8&#xD7;8 (64 squares)</td></tr>
+          <tr><td>Pieces</td><td style="color:var(--paper)">Black &amp; white stones</td><td style="color:#3dbd90">6 types, 32 total</td></tr>
+          <tr><td>Positions</td><td style="color:var(--paper)">~10&#x00B9;&#x2077;&#x2070;</td><td style="color:#3dbd90">~10&#x2075;&#x2070;</td></tr>
+          <tr><td>Branching factor</td><td style="color:var(--paper)">~250 moves/turn</td><td style="color:#3dbd90">~35 moves/turn</td></tr>
+          <tr><td>Avg game length</td><td style="color:var(--paper)">~200 moves</td><td style="color:#3dbd90">~80 moves</td></tr>
+          <tr><td>AI conquest</td><td style="color:var(--paper)">2016 (AlphaGo)</td><td style="color:#3dbd90">1997 (Deep Blue)</td></tr>
+          <tr><td>AI method</td><td style="color:var(--paper)">Deep neural networks</td><td style="color:#3dbd90">Brute-force + eval</td></tr>
+          <tr><td>Victory condition</td><td style="color:var(--paper)">Most territory</td><td style="color:#3dbd90">Checkmate king</td></tr>
+          <tr><td>Global players</td><td style="color:var(--paper)">~50 million</td><td style="color:#3dbd90">~600 million</td></tr>
+          <tr><td>Dominant regions</td><td style="color:var(--paper)">China, Korea, Japan</td><td style="color:#3dbd90">Russia, Europe, USA</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="two-col" style="margin-top:1.5rem">
+      <div class="panel">
+        <div class="panel-title">The branching gap</div>
+        <div class="prose" style="max-width:100%;font-size:12px">
+          <p>Chess averages ~35 legal moves per turn. Go averages ~250. In a 200-move Go game, the search tree contains approximately 250<sup>200</sup> nodes. Chess&#x2019;s 35<sup>80</sup> tree is enormous but tractable with pruning. Go&#x2019;s is simply beyond any exhaustive approach &#x2014; which is why it required genuine machine intuition, not deeper calculation.</p>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Destroy vs surround</div>
+        <div class="prose" style="max-width:100%;font-size:12px">
+          <p>Chess is about destruction &#x2014; eliminating the enemy king. Go is about creation &#x2014; surrounding territory. A Chess position can often be evaluated tactically by counting material. A Go position requires holistic judgment: influence, potential, thickness, life-and-death &#x2014; concepts that resist numerical reduction. This is why Go demands something closer to aesthetic intuition.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TIMELINE -->
+<div class="page" id="page-timeline">
+  <div class="wrap">
+    <div class="stamp stamp-mist">Timeline</div>
+    <h2 class="sec-title">Go &amp; AI &#x2014; The Full Line</h2>
+    <div class="red-rule"></div>
+    <div class="tl" id="tl-wrap"></div>
+  </div>
+</div>
+
+<!-- QUIZ -->
+<div class="page" id="page-quiz">
+  <div class="wrap">
+    <div class="stamp stamp-red">Test</div>
+    <h2 class="sec-title">Intelligence Quiz</h2>
+    <div class="red-rule"></div>
+    <p class="prose" style="margin-bottom:1.5rem">Ten questions on history, rules, AlphaGo, and world masters. The board does not lie about what you know.</p>
+    <div class="panel" id="quiz-wrap"></div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-kanji">&#x56F2;&#x68CB;</div>
+  <div class="footer-sig">AVIDAA GO &nbsp;&#xB7;&nbsp; avidaa1.github.io/go &nbsp;&#xB7;&nbsp; <em>AVIDAA * IO</em></div>
+</footer>
+
+<script>
+/* ====================================================
+   AVIDAA GO - MAIN SCRIPT
+   ==================================================== */
+
+/* -- NAV -- */
+var PAGES=[
+  {id:'home',   label:'Home'},
+  {id:'play',   label:'AI vs AI'},
+  {id:'play19', label:'Play 19×19'},
+  {id:'replay', label:'Replay'},
+  {id:'puzzles',label:'Puzzles'},
+  {id:'proverbs',label:'Proverbs'},
+  {id:'origins',label:'Origins'},
+  {id:'rules',  label:'Rules'},
+  {id:'alphago',label:'AlphaGo'},
+  {id:'masters',label:'Masters'},
+  {id:'rankings',label:'Rankings'},
+  {id:'aigo',   label:'AI×Go'},
+  {id:'aibrain',label:'AI Brain'},
+  {id:'joseki', label:'Joseki'},
+  {id:'stats',  label:'Deep Stats'},
+  {id:'compare',label:'vs Chess'},
+  {id:'timeline',label:'Timeline'},
+  {id:'quiz',   label:'Quiz'}
+];
+
+(function(){
+  var c=document.getElementById('nav-scroll');
+  var h='';
+  PAGES.forEach(function(p){
+    h+='<button class="nav-pill'+(p.id==='home'?' active':'')+'" id="np-'+p.id+'" onclick="go(\x27'+p.id+'\x27)">'+p.label+'</button>';
+  });
+  c.innerHTML=h;
+})();
+
+function go(name){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.nav-pill').forEach(function(b){b.classList.remove('active');});
+  var pg=document.getElementById('page-'+name);
+  if(pg)pg.classList.add('active');
+  var nb=document.getElementById('np-'+name);
+  if(nb)nb.classList.add('active');
+  if(name!=='play')window.scrollTo({top:0,behavior:'smooth'});
+  if(name==='timeline'&&!_tlDone)buildTL();
+  if(name==='rules'&&!_rulesDone){_rulesDone=true;showDiff('beginner',document.querySelector('.diff-btn.active'));}
+  if(name==='quiz'&&!_quizDone){_quizDone=true;_qi=0;_sc=0;renderQ();}
+  if(name==='replay'){setTimeout(function(){rpLoad(0);},50);}
+  if(name==='puzzles'){setTimeout(function(){
+    var sr=document.getElementById('pz-sel-row');
+    if(sr&&!sr._built){sr._built=true;
+      var h='';
+      PZ_DATA.forEach(function(p,i){
+        h+='<button class="gs-btn'+(i===0?' go-btn':'')+'" onclick="pzSelectBtn('+i+',this)">'+(i+1)+'</button>';
+      });
+      sr.innerHTML=h;
+    }
+    pzLoad(0);
+  },50);}
+  if(name==='proverbs')setTimeout(prov_build,50);
+  if(name==='rankings')setTimeout(rankings_build,50);
+  if(name==='aibrain')setTimeout(function(){brainPolicy();brainValue();mctsReset();brainTraining();},80);
+  if(name==='joseki')setTimeout(josekiBuild,50);
+  if(name==='stats')setTimeout(statsBuild,80);
+  if(name==='play19')setTimeout(function(){if(!P19.board)p19NewGame();else p19Draw();},50);
+}
+window.go=go;
+
+/* -- RULES -- */
+var _rulesDone=false;
+var DIFF={
+  beginner:[
+    ['The board','Go is played on a grid of lines. The standard board is 19\u00d719 (361 intersections), but beginners start on 9\u00d79. Players place stones on the intersections, not inside the squares. Stones do not move once placed.'],
+    ['Liberties','Every stone and connected group of same-color stones must have at least one adjacent empty intersection, called a liberty. A stone or group with zero liberties is captured and removed from the board.'],
+    ['Capture','Fill all the liberties of an opponent group by placing your stones on them. The entire group is removed from the board when its last liberty is taken.'],
+    ['Ko rule','You may not make a move that recreates the exact board position from the previous turn. This prevents infinite loops of single-stone capture and recapture.'],
+    ['Passing','On your turn you may pass instead of placing a stone. When both players pass consecutively, the game ends.'],
+    ['Winning','Count empty intersections surrounded entirely by your color (territory) plus captured stones. White receives 6.5 bonus points (komi) to compensate for Black moving first. Highest total wins.']
+  ],
+  intermediate:[
+    ['Life and death','A group is alive if it contains two separate enclosed empty spaces called eyes. A living group can never be captured. Dead groups will be removed when both players agree at game end.'],
+    ['Atari','A stone or group with only one liberty remaining is in atari \u2014 the Go equivalent of check. The player must escape or lose the group on the next move.'],
+    ['Ladders (Shicho)','A chase sequence where an attacker forces a stone diagonally across the board, reducing its liberties until it hits the edge. If the ladder holds, the stones are lost. Reading ladders correctly is a fundamental skill.'],
+    ['Nets (Geta)','Surrounding a stone or group without directly chasing it. The stone cannot escape regardless of where it plays. More subtle than ladders.'],
+    ['Influence vs territory','Build secure small territory in corners and edges, or build thick, influential positions toward the center. Both strategies are valid. The balance between them is the art of Go.'],
+    ['Sente and gote','Sente moves force the opponent to respond. Gote moves allow the opponent to play elsewhere. Managing the initiative is central to professional-level play.']
+  ],
+  advanced:[
+    ['Fuseki (opening)','The opening phase of a 19\u00d719 game, where players stake out corners, edges, and center simultaneously. AlphaGo invented opening patterns no human had conceived, which professionals have since adopted as standard.'],
+    ['Ko fights','Complex sequences using the ko rule. A player captures a ko, threatens elsewhere to force a response, then recaptures. Managing multiple ko threats simultaneously across the board is one of the most demanding skills in Go.'],
+    ['Moyos and frameworks','A moyo is a large potential territory \u2014 an area of strong influence with no secured points yet. Deciding when to convert influence to territory is a defining professional judgment.'],
+    ['Thickness and aji','Thickness is positional strength that cannot be immediately captured. Aji means taste: the latent potential of a position that can be activated later. Professionals maintain complex networks of aji across the board.'],
+    ['Tesuji','A skillful tactical move \u2014 the right move in a local situation, often counterintuitive. Collections of tesuji problems are how professionals train their reading.'],
+    ['Reading depth','The ability to calculate move sequences mentally before playing. Top professionals read 20\u201340 moves ahead in complex positions. AlphaGo effectively reads every relevant variation simultaneously.']
+  ],
+  professional:[
+    ['Professional dan system','The 9 professional dan ranks span a narrower rating range than the full amateur-to-professional gap. Even 1-dan professionals are beyond any amateur standard. Top 9-dan professionals are separated by positional refinements invisible below 5-dan amateur.'],
+    ['Endgame precision','Professional games are often decided in the yose \u2014 the phase where borderline points are filled. A single point determines the winner. Professionals calculate endgame sequences with perfect precision across the entire board simultaneously.'],
+    ['AI-influenced modern Go','Since 2017, professional Go has been fundamentally altered by AI analysis. Moves once considered wrong are standard. Corner enclosures once universal are abandoned. The 3-3 point invasion \u2014 rare before AlphaGo \u2014 is now played early by all professionals. AI has expanded what humans believed possible.'],
+    ['Training regimes','Top professionals train 8\u201312 hours daily: tsume-go (life-and-death problems), game review, practice games, and since 2017, systematic study of AI-generated positions. Korean professional schools train players from childhood under intensive programs.'],
+    ['National prestige','In South Korea, top Go players are national celebrities. In China, the national Go team receives government funding year-round. In Japan, the four major titles carry combined prize funds exceeding \u00a5100 million annually.']
+  ]
+};
+
+function showDiff(key,btn){
+  document.querySelectorAll('.diff-btn').forEach(function(b){b.classList.remove('active');});
+  if(btn)btn.classList.add('active');
+  var items=DIFF[key]||[];
+  var h='';
+  items.forEach(function(item,i){
+    h+='<div class="acc-row"><button class="acc-btn" onclick="accToggle(this)"><span>'+item[0]+'</span><span class="acc-caret">\u25bc</span></button><div class="acc-body">'+item[1]+'</div></div>';
+  });
+  document.getElementById('diff-content').innerHTML=h;
+}
+window.showDiff=showDiff;
+function accToggle(btn){
+  var b=btn.nextElementSibling,c=btn.querySelector('.acc-caret');
+  var o=b.classList.contains('open');
+  b.classList.toggle('open',!o);c.classList.toggle('open',!o);
+}
+window.accToggle=accToggle;
+
+/* -- TIMELINE -- */
+var _tlDone=false;
+var TL=[
+  {y:'~2500 BC',ai:false,t:'Weiqi invented in China',d:'Go created as Weiqi in ancient China. The oldest board game still actively played. Legend attributes its creation to Emperor Yao. Within centuries it was listed as one of the Four Arts of the Scholar, alongside calligraphy, painting, and music.'},
+  {y:'~500 BC',ai:false,t:'Confucius references Weiqi',d:'Confucius mentions Weiqi in the Analects, confirming its deep cultural importance in Chinese intellectual life. By this point Go was already ancient.'},
+  {y:'~7th century AD',ai:false,t:'Go reaches Korea and Japan',d:'Go spreads along Silk Road and cultural exchange routes. In Japan it embeds in Samurai and Buddhist culture. In Korea it becomes Baduk, developing its own distinct traditions and professional structures.'},
+  {y:'1603',ai:false,t:'Edo period formalizes Japanese Go',d:'Japan establishes four official Go schools. The government provides stipends for top players. Go becomes a fully professionalized discipline with formal ranking, institutional support, and national prestige.'},
+  {y:'1939',ai:false,t:'Honinbo title established',d:'Japan creates the Honinbo title, named after the historic school. It becomes the benchmark for Japanese Go excellence and remains one of the most prestigious domestic titles.'},
+  {y:'1997',ai:true,t:'Deep Blue defeats Kasparov in Chess',d:'IBM\'s Deep Blue defeats world Chess champion Garry Kasparov. AI Chess is solved. Experts immediately declare Go is different: the board is too large, the game too intuitive. It will take decades. They are almost right.'},
+  {y:'2000s',ai:true,t:'Monte Carlo enters Go AI',d:'MoGo, Crazy Stone, and similar programs use Monte Carlo Tree Search to play Go at amateur level on 9\u00d79 boards. The community consensus: AI will not reach professional level before 2030.'},
+  {y:'Oct 2015',ai:true,t:'AlphaGo Fan \u2014 first professional defeated',d:'Google DeepMind\u2019s AlphaGo defeats Fan Hui, European Champion, 5\u20130. First time a computer has beaten a professional Go player without handicap. Published in Nature. The Go world remains skeptical \u2014 Fan Hui is not considered world class.'},
+  {y:'Mar 2016',ai:true,t:'AlphaGo Lee \u2014 the cultural earthquake',d:'AlphaGo defeats Lee Sedol 4\u20131 in Seoul, broadcast live to 60 million viewers. AlphaGo\u2019s Move 37 and Move 78 leave grandmasters silent. Lee wins Game 4. The world changes.'},
+  {y:'Jan 2017',ai:true,t:'AlphaGo Master \u2014 60\u20130 online',d:'AlphaGo plays anonymously, defeating every top player it faces: 60 consecutive wins before revealing its identity. Then defeats Ke Jie 3\u20130. DeepMind announces AlphaGo\u2019s retirement from competitive play.'},
+  {y:'Oct 2017',ai:true,t:'AlphaGo Zero \u2014 trained from nothing',d:'No human data. No human strategy. Learns Go from random play through self-play in 40 days, then defeats AlphaGo Lee 100\u20130. Independently rediscovers joseki patterns developed over centuries \u2014 then surpasses them.'},
+  {y:'Dec 2017',ai:true,t:'AlphaZero \u2014 one algorithm, three games',d:'The same architecture applied to Chess and Shogi with no domain-specific tuning. Masters Chess in four hours, Shogi in two, Go in eight. A single general learning system defeats the best specialized programs ever built for each game.'},
+  {y:'2019',ai:true,t:'KataGo \u2014 open source AI Go',d:'KataGo becomes publicly available. For the first time, amateur players worldwide access superhuman Go analysis. Professional theory is rewritten. Moves once considered wrong become standard.'},
+  {y:'Nov 2019',ai:false,t:'Lee Sedol retires',d:'Lee Sedol announces retirement, citing AI: \u201cEven if I become the number one, there is an entity that cannot be defeated.\u201d He is 36 years old, 18-time world champion.'},
+  {y:'2020',ai:true,t:'AlphaFold \u2014 Go techniques solve biology',d:'DeepMind applies policy+value architecture from AlphaGo to protein structure prediction. AlphaFold 2 solves the 50-year protein folding problem with 92.4% accuracy. The board was always larger than the game.'},
+  {y:'2022\u20132026',ai:true,t:'Go AI shapes science and AI training',d:'Go-derived techniques applied in drug discovery, materials science, climate modelling, and nuclear fusion plasma control. Professional Go players worldwide use AI as standard training tools. Human Go theory continues to evolve under AI influence.'}
+];
+function buildTL(){
+  _tlDone=true;
+  var c=document.getElementById('tl-wrap');
+  function parseY(y){
+    var n=parseInt(y.replace(/[^0-9]/g,''))||0;
+    if(y.indexOf('BC')>-1)return -n;
+    return n;
+  }
+  var sorted=TL.slice().sort(function(a,b){return parseY(b.y)-parseY(a.y);});
+  var h='';
+  sorted.forEach(function(item){
+    h+='<div class="tl-entry">';
+    h+='<div class="tl-dot'+(item.ai?' ai':'')+'"></div>';
+    h+='<div class="tl-year">'+item.y+'</div>';
+    h+='<div class="tl-title">'+item.t+'</div>';
+    h+='<div class="tl-desc">'+item.d+'</div>';
+    h+='</div>';
+  });
+  c.innerHTML=h;
+}
+
+/* -- QUIZ -- */
+var _quizDone=false;var _qi=0;var _sc=0;var _answered=false;
+var QZ=[
+  {q:'How many possible board positions does Go have?',opts:['10\u2075\u2070','10\u00b9\u2077\u2070','10\u2078\u2070','10\u00b9\u00b2\u2070'],ans:1,e:'Go has approximately 10\u00b9\u2077\u2070 possible positions \u2014 more than the atoms in the observable universe (10\u2078\u2070). This made brute-force AI approaches completely intractable.'},
+  {q:'In what year did AlphaGo defeat Lee Sedol?',opts:['2014','2015','2016','2017'],ans:2,e:'March 2016. AlphaGo defeated Lee Sedol 4\u20131 in Seoul, broadcast live to 60 million viewers across Asia.'},
+  {q:'What is komi in Go?',opts:['An opening move sequence','Points given to White to compensate for Black moving first','The name for a captured group','A special 9\u00d79 board format'],ans:1,e:'Komi is the point bonus given to White \u2014 standard 6.5 points \u2014 to compensate for Black\u2019s advantage of moving first. The .5 ensures there are no draws.'},
+  {q:'AlphaGo Zero was trained using:',opts:['30 million professional game records','Human teacher feedback','Pure self-play with no human data','Chess and Go data combined'],ans:2,e:'AlphaGo Zero used zero human game data. Starting from random moves, it learned Go entirely through self-play in 40 days, then defeated AlphaGo Lee 100\u20130.'},
+  {q:'What is Weiqi?',opts:['The Japanese name for Go','The Korean name for Go','The Chinese name for Go','An ancient form of Chess'],ans:2,e:'Weiqi (\u56f2\u68cb) is the Chinese name. In Korean it is Baduk. In Japanese it is Go or Igo. The English-speaking world adopted the Japanese name.'},
+  {q:'A stone or group is captured when:',opts:['Surrounded on all four diagonal corners','It has zero liberties (no adjacent empty intersections)','The player resigns','The opponent passes twice'],ans:1,e:'A stone or group is captured when all its liberties \u2014 adjacent empty intersections \u2014 are filled by the opponent. The entire group is removed from the board.'},
+  {q:'Why did Lee Sedol retire in 2019?',opts:['Injury','Dispute with the Korean Go Association','He stated AI cannot be defeated','To pursue teaching'],ans:2,e:'Lee Sedol stated: \u201cEven if I become the number one, there is an entity that cannot be defeated.\u201d He retired at 36, one of the greatest Go players in history.'},
+  {q:'Which DeepMind system applied Go techniques to protein structure prediction?',opts:['AlphaZero','MuZero','AlphaFold','AlphaCode'],ans:2,e:'AlphaFold used the policy+value network architecture pioneered in AlphaGo. It solved the 50-year protein folding problem \u2014 one of the most significant scientific breakthroughs of the decade.'},
+  {q:'The Ko rule prevents:',opts:['Players from passing','Placing stones in corners','Infinite repetition of board positions','Capturing more than one stone at once'],ans:2,e:'The Ko rule states a player cannot make a move that recreates the exact board position from the previous turn. This prevents infinite loops of single-stone capture and recapture.'},
+  {q:'In which country did Go originate?',opts:['Japan','South Korea','India','China'],ans:3,e:'Go originated in China as Weiqi, approximately 2500\u20133000 BC. It is the oldest continuously played board game in recorded history.'}
+];
+function renderQ(){
+  var c=document.getElementById('quiz-wrap');
+  if(_qi>=QZ.length){
+    var msg=_sc>=8?'Master strength \u2014 the board approves.':_sc>=6?'Strong foundation. Study the AlphaGo chapter.':_sc>=4?'Developing. Begin with Origins and Rules.':'Return to the board. Begin again.';
+    c.innerHTML='<div style="text-align:center;padding:1.5rem"><div class="quiz-sc">'+_sc+' / '+QZ.length+'</div><div style="font-family:Georgia,serif;font-size:13px;font-style:italic;color:var(--paper2);margin:.75rem 0">'+msg+'</div><button class="gs-btn go-btn" style="margin:0 auto;display:block" onclick="_qi=0;_sc=0;_answered=false;renderQ()">Begin Again</button></div>';
+    return;
+  }
+  var q=QZ[_qi];
+  var h='<div class="stamp stamp-mist" style="margin-bottom:.75rem">'+(_qi+1)+' of '+QZ.length+'</div>';
+  h+='<div class="quiz-q">'+q.q+'</div><div class="quiz-opts">';
+  q.opts.forEach(function(opt,i){h+='<button class="quiz-opt" onclick="ansQ('+i+',this)">'+opt+'</button>';});
+  h+='</div><div class="quiz-fb" id="qfb"></div>';
+  if(_qi>0)h+='<div style="font-family:\'Segoe UI\',sans-serif;font-size:10px;color:var(--mist2);letter-spacing:1px;margin-top:.35rem">Score: '+_sc+' / '+_qi+'</div>';
+  c.innerHTML=h;_answered=false;
+}
+function ansQ(i,btn){
+  if(_answered)return;_answered=true;
+  var q=QZ[_qi];
+  btn.closest('.quiz-opts').querySelectorAll('.quiz-opt').forEach(function(b){b.disabled=true;});
+  if(i===q.ans){btn.classList.add('correct');_sc++;document.getElementById('qfb').textContent='\u2713 '+q.e;}
+  else{btn.classList.add('wrong');btn.closest('.quiz-opts').querySelectorAll('.quiz-opt')[q.ans].classList.add('correct');document.getElementById('qfb').textContent='\u2717 '+q.e;}
+  setTimeout(function(){_qi++;renderQ();},2800);
+}
+window.ansQ=ansQ;
+
+/* -- AI vs AI ENGINE -- */
+var GS={N:9,CEL:32,PAD:18,board:null,prev:null,turn:'b',bCap:0,wCap:0,moveN:0,passN:0,iv:null,speed:380,paused:false,running:false,lastR:-1,lastC:-1,lastCol:0};
+
+function gsBrdHash(bd){return bd.map(function(r){return r.join('');}).join('|');}
+
+function gsGroup(bd,r,c,col){
+  var vis=new Set(),grp=[],lib=new Set(),st=[[r,c]];
+  while(st.length){var p=st.pop();var k=p[0]+','+p[1];if(vis.has(k))continue;vis.add(k);grp.push(p);
+    [[p[0]-1,p[1]],[p[0]+1,p[1]],[p[0],p[1]-1],[p[0],p[1]+1]].forEach(function(n){var nr=n[0],nc=n[1];if(nr<0||nr>=GS.N||nc<0||nc>=GS.N)return;var nk=nr+','+nc;if(bd[nr][nc]===0)lib.add(nk);else if(bd[nr][nc]===col&&!vis.has(nk))st.push([nr,nc]);});}
+  return{grp:grp,lib:lib.size};
+}
+
+function gsRemove(bd,col){
+  var rm=0,ck=new Set();
+  for(var r=0;r<GS.N;r++)for(var c=0;c<GS.N;c++){if(bd[r][c]!==col)continue;var k=r+','+c;if(ck.has(k))continue;var res=gsGroup(bd,r,c,col);res.grp.forEach(function(p){ck.add(p[0]+','+p[1]);});if(res.lib===0){res.grp.forEach(function(p){bd[p[0]][p[1]]=0;});rm+=res.grp.length;}}
+  return rm;
+}
+
+function gsDraw(){
+  var cv=document.getElementById('gs-canvas');if(!cv)return;
+  var ctx=cv.getContext('2d');
+  var N=GS.N,C=GS.CEL,P=GS.PAD,sz=N*C+P*2;
+  cv.width=sz;cv.height=sz;
+  // Board
+  ctx.fillStyle='#c4913a';ctx.fillRect(0,0,sz,sz);
+  ctx.fillStyle='rgba(160,100,30,.15)';
+  for(var i=0;i<N-1;i++)ctx.fillRect(P+i*C,P,C,sz-P*2);
+  // Lines
+  ctx.strokeStyle='#7a5c20';ctx.lineWidth=1;
+  for(var i=0;i<N;i++){
+    ctx.beginPath();ctx.moveTo(P+i*C,P);ctx.lineTo(P+i*C,P+(N-1)*C);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(P,P+i*C);ctx.lineTo(P+(N-1)*C,P+i*C);ctx.stroke();
+  }
+  // Star points 9x9
+  var stars=[[2,2],[2,6],[6,2],[6,6],[4,4]];
+  ctx.fillStyle='#5a420a';
+  stars.forEach(function(s){ctx.beginPath();ctx.arc(P+s[0]*C,P+s[1]*C,2.8,0,Math.PI*2);ctx.fill();});
+  // Stones
+  for(var r=0;r<N;r++){for(var c=0;c<N;c++){var v=GS.board[r][c];if(!v)continue;
+    var x=P+c*C,y=P+r*C,rad=Math.max(1,C*.44);
+    ctx.save();ctx.shadowColor='rgba(0,0,0,.55)';ctx.shadowBlur=5;ctx.shadowOffsetX=2;ctx.shadowOffsetY=2;
+    var g;
+    if(v===1){g=ctx.createRadialGradient(x-rad*.3,y-rad*.35,Math.max(0,rad*.05),x,y,Math.max(1,rad));g.addColorStop(0,'#555');g.addColorStop(.5,'#1a1a1a');g.addColorStop(1,'#080808');}
+    else{g=ctx.createRadialGradient(x-rad*.3,y-rad*.35,Math.max(0,rad*.08),x,y,Math.max(1,rad));g.addColorStop(0,'#fff');g.addColorStop(.55,'#f0ece0');g.addColorStop(1,'#d0c8b0');}
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,rad,0,Math.PI*2);ctx.fill();ctx.restore();
+  }}
+  // Last move marker
+  if(GS.lastR>=0){var lx=P+GS.lastC*C,ly=P+GS.lastR*C;ctx.strokeStyle=GS.lastCol===1?'rgba(255,255,255,.65)':'rgba(0,0,0,.5)';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(lx,ly,C*.17,0,Math.PI*2);ctx.stroke();}
+}
+
+function gsAI(col){
+  var opp=col===1?2:1,N=GS.N,best=[];
+  for(var r=0;r<N;r++){for(var c=0;c<N;c++){
+    if(GS.board[r][c]!==0)continue;
+    var bd=GS.board.map(function(x){return x.slice();});
+    bd[r][c]=col;
+    var caps=0;
+    [[r-1,c],[r+1,c],[r,c-1],[r,c+1]].forEach(function(n){var nr=n[0],nc=n[1];if(nr<0||nr>=N||nc<0||nc>=N)return;if(bd[nr][nc]===opp){var res=gsGroup(bd,nr,nc,opp);if(res.lib===0){res.grp.forEach(function(p){bd[p[0]][p[1]]=0;});caps+=res.grp.length;}}});
+    var self=gsGroup(bd,r,c,col);if(self.lib===0&&caps===0)continue;
+    var hash=gsBrdHash(bd);
+    if(GS.prev&&hash===GS.prev)continue;
+    var sc=caps*22;
+    [[r-1,c],[r+1,c],[r,c-1],[r,c+1]].forEach(function(n){var nr=n[0],nc=n[1];if(nr<0||nr>=N||nc<0||nc>=N)return;if(GS.board[nr][nc]===opp){var res=gsGroup(GS.board,nr,nc,opp);if(res.lib===1)sc+=14;else if(res.lib===2)sc+=5;}if(GS.board[nr][nc]===col)sc+=6;});
+    if((r===0||r===N-1)&&(c===0||c===N-1))sc+=4;else if(r===0||r===N-1||c===0||c===N-1)sc+=2;
+    var cr=Math.abs(r-(N-1)/2),cc=Math.abs(c-(N-1)/2);
+    if(col===1)sc-=(cr+cc)*.4;else sc+=(cr+cc)*.35;
+    sc+=self.lib*1.5+Math.random()*7;
+    best.push({r:r,c:c,sc:sc,caps:caps,bd:bd,hash:hash});
+  }}
+  if(!best.length)return null;
+  best.sort(function(a,b){return b.sc-a.sc;});
+  var top=Math.min(5,best.length);
+  return best[Math.floor(Math.pow(Math.random(),1.5)*top)];
+}
+
+function gsTick(){
+  if(GS.paused||!GS.running)return;
+  var col=GS.turn==='b'?1:2;
+  var name=GS.turn==='b'?'Black':'White';
+  var move=gsAI(col);
+  if(!move){
+    GS.passN++;
+    gsLog('<span class="mn">'+GS.moveN+'</span> <span class="'+(col===1?'mb':'mw')+'">'+name+' passes</span>');
+    document.getElementById('gs-status').textContent=name+' passes ('+GS.passN+' consecutive)';
+    if(GS.passN>=2){gsEnd();return;}
+  } else {
+    GS.passN=0;
+    GS.prev=gsBrdHash(GS.board);
+    GS.board=move.bd;GS.lastR=move.r;GS.lastC=move.c;GS.lastCol=col;GS.moveN++;
+    var rc='('+(move.r+1)+','+String.fromCharCode(65+move.c)+')';
+    var capTxt=move.caps>0?' +'+move.caps:'';
+    gsLog('<span class="mn">'+GS.moveN+'</span> <span class="'+(col===1?'mb':'mw')+'">'+name+' '+rc+capTxt+'</span>');
+    if(col===1){GS.bCap+=move.caps;document.getElementById('gs-b-cap').textContent=GS.bCap;}
+    else{GS.wCap+=move.caps;document.getElementById('gs-w-cap').textContent=GS.wCap;}
+    document.getElementById('gs-status').textContent=name+' plays '+rc+(move.caps?' \u2014 '+move.caps+' captured':'');
+  }
+  GS.turn=GS.turn==='b'?'w':'b';
+  // Score bar
+  var bl=0,wl=0;for(var r=0;r<GS.N;r++)for(var c=0;c<GS.N;c++){if(GS.board[r][c]===1)bl++;else if(GS.board[r][c]===2)wl++;}
+  var tot=bl+wl||1;
+  document.getElementById('gs-bar-b').style.width=Math.round(bl/tot*100)+'%';
+  document.getElementById('gs-bar-w').style.width=Math.round(wl/tot*100)+'%';
+  gsDraw();
+  // Auto-end if board is very full
+  var filled=0;for(var r=0;r<GS.N;r++)for(var c=0;c<GS.N;c++)if(GS.board[r][c])filled++;
+  if(filled>GS.N*GS.N*.86){GS.passN=2;gsEnd();}
+}
+
+function gsEnd(){
+  clearInterval(GS.iv);GS.running=false;
+  // Territory scoring: BFS flood each empty region, track border colors
+  var scored=new Set(),bt=0,wt=0;
+  for(var r=0;r<GS.N;r++){for(var c=0;c<GS.N;c++){
+    var k0=r+','+c;
+    if(GS.board[r][c]!==0||scored.has(k0))continue;
+    var region=[],queue=[[r,c]],vis=new Set(),border=new Set();
+    vis.add(k0);
+    while(queue.length){
+      var p=queue.shift();var pr=p[0],pc=p[1];
+      region.push([pr,pc]);scored.add(pr+','+pc);
+      [[pr-1,pc],[pr+1,pc],[pr,pc-1],[pr,pc+1]].forEach(function(n){
+        var nr=n[0],nc=n[1];
+        if(nr<0||nr>=GS.N||nc<0||nc>=GS.N)return;
+        var nk=nr+','+nc;
+        if(GS.board[nr][nc]!==0){border.add(GS.board[nr][nc]);}
+        else if(!vis.has(nk)){vis.add(nk);queue.push([nr,nc]);}
+      });
+    }
+    if(border.size===1){if(border.has(1))bt+=region.length;else wt+=region.length;}
+  }}
+  var bTot=bt+GS.bCap,wTot=wt+GS.wCap+6.5;
+  var winner=bTot>wTot?'● Black AI':'○ White AI';
+  var msg=winner+' wins — B:'+bTot.toFixed(1)+' (terr:'+bt+' cap:'+GS.bCap+')  W:'+wTot.toFixed(1)+' (terr:'+wt+' cap:'+GS.wCap+' komi:6.5)';
+  document.getElementById('gs-status').textContent=msg;
+  document.getElementById('gs-badge').textContent='Finished';
+  document.getElementById('gs-badge').classList.remove('live');
+  gsLog('<em style="color:#d4a84b">RESULT: '+msg+'</em>');
+  document.getElementById('gs-start-btn').disabled=false;
+  document.getElementById('gs-pause-btn').disabled=true;
+}
+
+function gsLog(html){
+  var log=document.getElementById('gs-log');
+  if(log.children.length===1&&log.children[0].textContent==='\u2014 move log \u2014')log.innerHTML='';
+  var d=document.createElement('div');d.className='gs-le';d.innerHTML=html;
+  log.appendChild(d);log.scrollTop=log.scrollHeight;
+}
+
+function gsInit(){
+  GS.board=Array(GS.N).fill(null).map(function(){return Array(GS.N).fill(0);});
+  GS.prev=null;GS.turn='b';GS.bCap=0;GS.wCap=0;GS.moveN=0;GS.passN=0;GS.running=false;GS.paused=false;GS.lastR=-1;
+  document.getElementById('gs-b-cap').textContent='0';
+  document.getElementById('gs-w-cap').textContent='0';
+  document.getElementById('gs-bar-b').style.width='50%';
+  document.getElementById('gs-bar-w').style.width='50%';
+  document.getElementById('gs-status').textContent='Press Start to begin the game';
+  document.getElementById('gs-badge').textContent='Ready';
+  document.getElementById('gs-badge').classList.remove('live');
+  var log=document.getElementById('gs-log');
+  log.innerHTML='<div class="gs-le" style="color:var(--mist2)">\u2014 move log \u2014</div>';
+  document.getElementById('gs-start-btn').disabled=false;
+  document.getElementById('gs-pause-btn').disabled=true;
+  gsDraw();
+}
+
+function gsStart(){
+  if(GS.running)return;
+  gsInit();GS.running=true;
+  document.getElementById('gs-badge').textContent='Live';
+  document.getElementById('gs-badge').classList.add('live');
+  document.getElementById('gs-start-btn').disabled=true;
+  document.getElementById('gs-pause-btn').disabled=false;
+  document.getElementById('gs-pause-btn').textContent='\u23f8 Pause';
+  GS.iv=setInterval(gsTick,GS.speed);
+  gsLog('<em style="color:#3dbd90">Game started \u2014 Black AI vs White AI \u2014 9\u00d79</em>');
+}
+function gsPause(){
+  if(!GS.running)return;
+  GS.paused=!GS.paused;
+  document.getElementById('gs-pause-btn').textContent=GS.paused?'\u25b6 Resume':'\u23f8 Pause';
+  document.getElementById('gs-badge').textContent=GS.paused?'Paused':'Live';
+  if(!GS.paused)document.getElementById('gs-badge').classList.add('live');
+  else document.getElementById('gs-badge').classList.remove('live');
+}
+function gsReset(){clearInterval(GS.iv);gsInit();}
+function gsSpeed(ms){
+  GS.speed=ms;
+  ['slow','med','fast'].forEach(function(id){document.getElementById('sp-'+id).classList.remove('sp-active');});
+  if(ms===800)document.getElementById('sp-slow').classList.add('sp-active');
+  else if(ms===380)document.getElementById('sp-med').classList.add('sp-active');
+  else document.getElementById('sp-fast').classList.add('sp-active');
+  if(GS.running&&!GS.paused){clearInterval(GS.iv);GS.iv=setInterval(gsTick,ms);}
+}
+window.gsStart=gsStart;window.gsPause=gsPause;window.gsReset=gsReset;window.gsSpeed=gsSpeed;
+
+
+/* ====================================================
+   P19 — 19x19 HUMAN VS AI ENGINE
+   ==================================================== */
+var P19={N:19,CEL:0,PAD:0,board:null,prev:null,bCap:0,wCap:0,moveN:0,passN:0,running:false,history:[],aiThinking:false};
+
+function p19CalcSize(){
+  var wrap=document.getElementById('page-play19');
+  if(!wrap)return;
+  var w=Math.min(wrap.offsetWidth-40,520);
+  P19.CEL=Math.max(18,Math.floor((w-30)/(P19.N+1)));
+  P19.PAD=Math.floor(P19.CEL*0.7);
+}
+
+function p19Draw(){
+  var cv=document.getElementById('p19-canvas');if(!cv)return;
+  p19CalcSize();
+  var N=P19.N,C=P19.CEL,P=P19.PAD;
+  var sz=(N-1)*C+P*2;
+  cv.width=sz;cv.height=sz;
+  var ctx=cv.getContext('2d');
+  // Board
+  ctx.fillStyle='#c4913a';ctx.fillRect(0,0,sz,sz);
+  ctx.fillStyle='rgba(160,100,30,.12)';
+  for(var i=0;i<N;i+=2)ctx.fillRect(P+i*C,P,(i+1<N?C:0),sz-P*2);
+  ctx.strokeStyle='#7a5c20';ctx.lineWidth=.8;
+  for(var i=0;i<N;i++){
+    ctx.beginPath();ctx.moveTo(P+i*C,P);ctx.lineTo(P+i*C,P+(N-1)*C);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(P,P+i*C);ctx.lineTo(P+(N-1)*C,P+i*C);ctx.stroke();
+  }
+  // Star points for 19x19
+  var stars=[[3,3],[3,9],[3,15],[9,3],[9,9],[9,15],[15,3],[15,9],[15,15]];
+  ctx.fillStyle='#5a420a';
+  stars.forEach(function(s){ctx.beginPath();ctx.arc(P+s[0]*C,P+s[1]*C,2.2,0,Math.PI*2);ctx.fill();});
+  // Stones
+  if(!P19.board)return;
+  for(var r=0;r<N;r++){for(var c=0;c<N;c++){
+    var v=P19.board[r][c];if(!v)continue;
+    var x=P+c*C,y=P+r*C,rad=Math.max(1,C*.44);
+    ctx.save();ctx.shadowColor='rgba(0,0,0,.5)';ctx.shadowBlur=4;ctx.shadowOffsetX=1;ctx.shadowOffsetY=1;
+    var g;
+    if(v===1){g=ctx.createRadialGradient(x-rad*.28,y-rad*.32,Math.max(0,rad*.04),x,y,Math.max(1,rad));g.addColorStop(0,'#555');g.addColorStop(.5,'#1a1a1a');g.addColorStop(1,'#080808');}
+    else{g=ctx.createRadialGradient(x-rad*.28,y-rad*.32,Math.max(0,rad*.06),x,y,Math.max(1,rad));g.addColorStop(0,'#fff');g.addColorStop(.5,'#f0ece0');g.addColorStop(1,'#d0c8b0');}
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,rad,0,Math.PI*2);ctx.fill();ctx.restore();
+  }}
+  // Last move
+  if(P19.lastR>=0){var lx=P+P19.lastC*C,ly=P+P19.lastR*C;ctx.strokeStyle=P19.lastCol===1?'rgba(255,255,255,.7)':'rgba(0,0,0,.5)';ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(lx,ly,C*.17,0,Math.PI*2);ctx.stroke();}
+}
+
+function p19Hash(){return P19.board.map(function(r){return r.join('');}).join('|');}
+
+function p19Group(bd,r,c,col){
+  var vis=new Set(),grp=[],lib=new Set(),st=[[r,c]];
+  while(st.length){var p=st.pop();var k=p[0]+','+p[1];if(vis.has(k))continue;vis.add(k);grp.push(p);
+    [[p[0]-1,p[1]],[p[0]+1,p[1]],[p[0],p[1]-1],[p[0],p[1]+1]].forEach(function(n){var nr=n[0],nc=n[1];if(nr<0||nr>=P19.N||nc<0||nc>=P19.N)return;var nk=nr+','+nc;if(bd[nr][nc]===0)lib.add(nk);else if(bd[nr][nc]===col&&!vis.has(nk))st.push([nr,nc]);});}
+  return{grp:grp,lib:lib.size};
+}
+
+function p19AI(){
+  var N=P19.N,col=2,opp=1,best=[],prevHash=P19.prev;
+  for(var r=0;r<N;r++){for(var c=0;c<N;c++){
+    if(P19.board[r][c]!==0)continue;
+    var bd=P19.board.map(function(x){return x.slice();});
+    bd[r][c]=col;
+    var caps=0;
+    [[r-1,c],[r+1,c],[r,c-1],[r,c+1]].forEach(function(n){var nr=n[0],nc=n[1];if(nr<0||nr>=N||nc<0||nc>=N)return;if(bd[nr][nc]===opp){var res=p19Group(bd,nr,nc,opp);if(res.lib===0){res.grp.forEach(function(p){bd[p[0]][p[1]]=0;});caps+=res.grp.length;}}});
+    var self=p19Group(bd,r,c,col);if(self.lib===0&&caps===0)continue;
+    var hash=bd.map(function(x){return x.join('');}).join('|');
+    if(prevHash&&hash===prevHash)continue;
+    var sc=caps*25;
+    [[r-1,c],[r+1,c],[r,c-1],[r,c+1]].forEach(function(n){var nr=n[0],nc=n[1];if(nr<0||nr>=N||nc<0||nc>=N)return;if(P19.board[nr][nc]===opp){var res=p19Group(P19.board,nr,nc,opp);if(res.lib===1)sc+=15;else if(res.lib===2)sc+=5;}if(P19.board[nr][nc]===col)sc+=4;});
+    var cr=Math.abs(r-(N-1)/2),cc2=Math.abs(c-(N-1)/2);
+    sc+=(cr+cc2)*.4;// White: edge preference
+    if((r===0||r===N-1)&&(c===0||c===N-1))sc+=6;else if(r<3||r>N-4||c<3||c>N-4)sc+=3;
+    sc+=self.lib*.8+Math.random()*5;
+    best.push({r:r,c:c,sc:sc,caps:caps,bd:bd,hash:hash});
+  }}
+  if(!best.length)return null;
+  best.sort(function(a,b){return b.sc-a.sc;});
+  return best[Math.floor(Math.pow(Math.random(),1.8)*Math.min(8,best.length))];
+}
+
+function p19Place(r,c){
+  if(!P19.running||P19.aiThinking)return;
+  if(P19.board[r][c]!==0)return;
+  var N=P19.N,col=1,opp=2;
+  var bd=P19.board.map(function(x){return x.slice();});
+  bd[r][c]=col;
+  var caps=0;
+  [[r-1,c],[r+1,c],[r,c-1],[r,c+1]].forEach(function(n){var nr=n[0],nc=n[1];if(nr<0||nr>=N||nc<0||nc>=N)return;if(bd[nr][nc]===opp){var res=p19Group(bd,nr,nc,opp);if(res.lib===0){res.grp.forEach(function(p){bd[p[0]][p[1]]=0;});caps+=res.grp.length;}}});
+  var self=p19Group(bd,r,c,col);if(self.lib===0&&caps===0){p19Log('<em>Illegal move (self-capture)</em>');return;}
+  var hash=bd.map(function(x){return x.join('');}).join('|');
+  if(P19.prev&&hash===P19.prev){p19Log('<em>Ko rule violation</em>');return;}
+  P19.history.push({board:P19.board.map(function(x){return x.slice();}),bCap:P19.bCap,wCap:P19.wCap,prev:P19.prev,lastR:P19.lastR||0,lastC:P19.lastC||0});
+  P19.prev=P19.board.map(function(x){return x.join('');}).join('|');
+  P19.board=bd;P19.bCap+=caps;P19.lastR=r;P19.lastC=c;P19.lastCol=1;P19.passN=0;P19.moveN++;
+  document.getElementById('p19-b-cap').textContent=P19.bCap;
+  var rc='('+(r+1)+','+String.fromCharCode(65+c)+')';
+  p19Log('<span class="mn">'+P19.moveN+'</span> <span class="mb">You '+rc+(caps?' +'+caps:'')+'</span>');
+  document.getElementById('p19-status').textContent='AI is thinking...';
+  p19Draw();p19UpdateBar();
+  setTimeout(function(){
+    P19.aiThinking=true;
+    var move=p19AI();
+    if(!move){
+      P19.passN++;p19Log('<span class="mn">'+P19.moveN+'</span> <span class="mw">AI passes</span>');
+      if(P19.passN>=2){p19End();}
+      else{document.getElementById('p19-status').textContent='AI passed. Your turn.';}
+    } else {
+      P19.passN=0;
+      P19.prev=P19.board.map(function(x){return x.join('');}).join('|');
+      P19.board=move.bd;P19.wCap+=move.caps;P19.lastR=move.r;P19.lastC=move.c;P19.lastCol=2;P19.moveN++;
+      document.getElementById('p19-w-cap').textContent=P19.wCap;
+      var arc='('+(move.r+1)+','+String.fromCharCode(65+move.c)+')';
+      p19Log('<span class="mn">'+P19.moveN+'</span> <span class="mw">AI '+arc+(move.caps?' +'+move.caps:'')+'</span>');
+      document.getElementById('p19-status').textContent='Your turn — move '+P19.moveN;
+    }
+    P19.aiThinking=false;p19Draw();p19UpdateBar();
+  },180);
+}
+
+function p19UpdateBar(){
+  var bl=0,wl=0;for(var r=0;r<P19.N;r++)for(var c=0;c<P19.N;c++){if(P19.board[r][c]===1)bl++;else if(P19.board[r][c]===2)wl++;}
+  var tot=bl+wl||1;
+  document.getElementById('p19-bar-b').style.width=Math.round(bl/tot*100)+'%';
+  document.getElementById('p19-bar-w').style.width=Math.round(wl/tot*100)+'%';
+}
+
+function p19Log(html){
+  var log=document.getElementById('p19-log');
+  if(log.children.length===1&&log.children[0].textContent==='\u2014 game log \u2014')log.innerHTML='';
+  var d=document.createElement('div');d.className='gs-le';d.innerHTML=html;
+  log.appendChild(d);log.scrollTop=log.scrollHeight;
+}
+
+function p19End(){
+  P19.running=false;
+  document.getElementById('p19-badge').textContent='Finished';
+  document.getElementById('p19-status').textContent='Game over \u2014 count territory to determine winner.';
+  p19Log('<em style="color:#d4a84b">Game over. Count territory to score.</em>');
+}
+
+function p19NewGame(){
+  P19.board=Array(P19.N).fill(null).map(function(){return Array(P19.N).fill(0);});
+  P19.prev=null;P19.bCap=0;P19.wCap=0;P19.moveN=0;P19.passN=0;P19.running=true;P19.aiThinking=false;P19.history=[];P19.lastR=-1;P19.lastC=-1;
+  document.getElementById('p19-b-cap').textContent='0';document.getElementById('p19-w-cap').textContent='0';
+  document.getElementById('p19-bar-b').style.width='50%';document.getElementById('p19-bar-w').style.width='50%';
+  document.getElementById('p19-status').textContent='Your turn \u2014 Black plays first';
+  document.getElementById('p19-badge').textContent='Playing';
+  var log=document.getElementById('p19-log');log.innerHTML='<div class="gs-le" style="color:var(--mist2)">\u2014 new game started \u2014</div>';
+  p19Draw();
+  // Canvas click
+  var cv=document.getElementById('p19-canvas');
+  cv.onclick=function(e){if(!P19.running||P19.aiThinking)return;var rect=cv.getBoundingClientRect();var scaleX=cv.width/rect.width;var scaleY=cv.height/rect.height;var x=(e.clientX-rect.left)*scaleX;var y=(e.clientY-rect.top)*scaleY;var C=P19.CEL,Pd=P19.PAD;var c=Math.round((x-Pd)/C);var r=Math.round((y-Pd)/C);if(r>=0&&r<P19.N&&c>=0&&c<P19.N)p19Place(r,c);};
+}
+function p19Pass(){if(!P19.running)return;P19.passN++;p19Log('<span class="mb">You pass</span>');document.getElementById('p19-status').textContent='You passed.';if(P19.passN>=2)p19End();}
+function p19Resign(){if(!P19.running)return;P19.running=false;document.getElementById('p19-status').textContent='You resigned. AI wins.';p19Log('<em style="color:#d4a84b">You resigned.</em>');}
+function p19Undo(){if(!P19.running||P19.history.length<2)return;P19.history.pop();var s=P19.history.pop();P19.board=s.board;P19.bCap=s.bCap;P19.wCap=s.wCap;P19.prev=s.prev;P19.lastR=s.lastR;P19.lastC=s.lastC;P19.moveN-=2;document.getElementById('p19-b-cap').textContent=P19.bCap;document.getElementById('p19-w-cap').textContent=P19.wCap;document.getElementById('p19-status').textContent='Move undone. Your turn.';p19Log('<em>Move undone.</em>');p19Draw();p19UpdateBar();}
+window.p19NewGame=p19NewGame;window.p19Pass=p19Pass;window.p19Resign=p19Resign;window.p19Undo=p19Undo;
+
+/* ====================================================
+   REPLAYER ENGINE
+   ==================================================== */
+var RP={cur:0,gameIdx:0,autoTimer:null};
+
+var RP_GAMES=[
+  {title:'Lee Sedol vs AlphaGo \u2014 Game 4 (2016)',black:'Lee Sedol',white:'AlphaGo',result:'White wins by resignation',note:'The game containing Move 78 \u2014 the only move that genuinely surprised AlphaGo. Lee invented a shoulder hit no AI had learned from human data. AlphaGo\'s win probability dropped from 70% to under 50%. The crowd gasped.',
+   moves:[
+    {r:3,c:3,col:1,note:'Black opens at 4-4 (hoshi). The standard modern opening \u2014 balanced influence and territory.'},
+    {r:3,c:15,col:2,note:'White mirrors at opposite 4-4. AlphaGo opens symmetrically, a pattern it learned from millions of self-play games.'},
+    {r:15,c:3,col:1,note:'Lee Sedol claims the third corner. The opening is classical joseki territory.'},
+    {r:15,c:15,col:2,note:'White takes the fourth corner. All four hoshi points claimed. The real game begins.'},
+    {r:2,c:3,col:1,note:'Lee approaches White\'s corner. He begins his attacking strategy early \u2014 classic Lee Sedol aggression.'},
+    {r:2,c:5,col:2,note:'AlphaGo defends with a pincer. An unusual response \u2014 human players would typically extend differently here.'},
+    {r:9,c:9,col:1,note:'Lee plays tengen \u2014 the centre of the board. A philosophical statement: influence before territory.'},
+    {r:5,c:3,col:2,note:'White ignores the centre and strengthens locally. AlphaGo values territory over influence in this position.'},
+    {r:3,c:16,col:1,note:'Black invades White\'s corner. Lee begins his plan to destabilise AlphaGo\'s position.'},
+    {r:4,c:16,col:2,note:'White blocks. AlphaGo has calculated this sequence 10 moves ahead with near-certainty.'},
+    {r:4,c:15,col:1,note:'Lee pushes in. He is probing for weaknesses in AlphaGo\'s structure.'},
+    {r:5,c:15,col:2,note:'White extends. The sequence is proceeding as AlphaGo predicted.'},
+    {r:6,c:15,col:1,note:'Black continues the push. Lee is building a large centre framework.'},
+    {r:7,c:15,col:2,note:'White follows. AlphaGo is comfortable \u2014 its win probability sits above 65%.'},
+    {r:7,c:16,col:1,note:'Lee plays a shoulder hit \u2014 Move 15. An unusual joseki choice, designed to create confusion.'},
+    {r:8,c:16,col:2,note:'White responds. AlphaGo\'s confidence: 68%. The position seems settled.'},
+    {r:9,c:16,col:1,note:'Black continues building the right side. Lee is constructing a moyou framework.'},
+    {r:10,c:15,col:2,note:'White invades the framework immediately. AlphaGo does not allow large territories to develop unchallenged.'},
+    {r:9,c:3,col:1,note:'Black strengthens the left side. Lee is managing multiple battles simultaneously.'},
+    {r:9,c:2,col:2,note:'White extends. The game is complex \u2014 battles on three sides of the board.'},
+    {r:3,c:9,col:1,note:'Lee plays a wide extension across the top. This is the kind of move humans call \u201cintuitive\u201d \u2014 AlphaGo calls it \u201chigh probability\u201d.'},
+    {r:2,c:9,col:2,note:'White responds with a shoulder hit. AlphaGo is applying pressure from above.'},
+    {r:4,c:9,col:1,note:'Black cuts off White\u2019s invasion stone. Lee is fighting back across the top.'},
+    {r:5,c:9,col:2,note:'White escapes. The battle is unresolved. Win probability: AlphaGo 61%.'},
+    {r:11,c:3,col:1,note:'Lee reinforces the left side. He needs territory on the left to compensate for centre losses.'},
+    {r:11,c:4,col:2,note:'White presses in. AlphaGo is systematically reducing Black\'s frameworks.'},
+    {r:12,c:3,col:1,note:'Black blocks firmly. Lee refuses to concede the left side.'},
+    {r:13,c:3,col:2,note:'White extends further. AlphaGo now has 63% win probability.'},
+    {r:14,c:3,col:1,note:'Lee plays the 3-3 point under AlphaGo\u2019s stone. A high-risk invasion.'},
+    {r:13,c:4,col:2,note:'White blocks the invasion. AlphaGo calculates the best response precisely.'},
+    {r:14,c:4,col:1,note:'Black extends the invasion. Lee is fighting for life in AlphaGo\u2019s territory.'},
+    {r:14,c:5,col:2,note:'White walls off. The invasion is under attack. AlphaGo\u2019s confidence: 67%.'},
+    {r:15,c:5,col:1,note:'Lee pushes through. He is creating a fight in the corner where AlphaGo\u2019s reading may be tested.'},
+    {r:15,c:4,col:2,note:'White cuts. AlphaGo separates Lee\u2019s stones. Win probability: 70%.'},
+    {r:13,c:5,col:1,note:'Black connects. Lee is holding his group together by a thread.'},
+    {r:12,c:5,col:2,note:'White attacks from above. AlphaGo is tightening the noose.'},
+    {r:12,c:6,col:1,note:'Lee escapes to the right. His group is alive but weakened.'},
+    {r:11,c:6,col:2,note:'White follows. The pursuit continues. AlphaGo: 72% confidence.'},
+    {r:10,c:6,col:1,note:'Black runs. Lee is buying time, looking for a counterattack.'},
+    {r:10,c:7,col:2,note:'White cuts off the escape route. AlphaGo seals the position.'},
+    {r:9,c:7,col:1,note:'Lee connects from below. His group survives \u2014 barely.'},
+    {r:8,c:7,col:2,note:'White presses from above. AlphaGo is methodical. Win probability: 74%.'},
+    {r:7,c:7,col:1,note:'Black defends. The group is stable now. Lee begins looking at the global position.'},
+    {r:6,c:7,col:2,note:'White plays a large territorial move in the upper area. AlphaGo secures its lead.'},
+    {r:7,c:8,col:1,note:'Lee plays a key connection. He is preparing for a large-scale fight on the right side.'},
+    {r:8,c:8,col:2,note:'White cuts. AlphaGo does not allow the connection. Win probability: 76%.'},
+    {r:7,c:9,col:1,note:'Black pushes through. Lee is creating a complex fight \u2014 complexity is his only hope against AlphaGo\'s reading.'},
+    {r:6,c:9,col:2,note:'White blocks. AlphaGo has calculated this sequence. Confidence: 77%.'},
+    {r:5,c:10,col:1,note:'Lee plays the crucial wedge. If this works, he can separate AlphaGo\'s groups.'},
+    {r:4,c:10,col:2,note:'White connects above. AlphaGo stabilises. Win probability: 78%.'},
+    {r:5,c:11,col:1,note:'Black creates a new threat. Lee refuses to give up. He is searching for the move that will change the game.'},
+    {r:4,c:11,col:2,note:'White defends efficiently. AlphaGo: 79%.'},
+    {r:3,c:11,col:1,note:'Lee presses in. A desperate attack on White\u2019s upper group.'},
+    {r:3,c:12,col:2,note:'White runs. AlphaGo is comfortable. Confidence: 80%.'},
+    {r:4,c:12,col:1,note:'Black follows. Lee has found a chase sequence \u2014 if he can capture this group, the game turns.'},
+    {r:5,c:12,col:2,note:'White escapes easily. AlphaGo has two eyes. Win probability: 81%.'},
+    {r:6,c:12,col:1,note:'Black tries another angle. Lee Sedol is known for never giving up.'},
+    {r:6,c:13,col:2,note:'White blocks. AlphaGo\u2019s lead is solid. Confidence: 82%.'},
+    {r:7,c:13,col:1,note:'Lee plays the connection. He is setting up for Move 78.'},
+    {r:7,c:14,col:2,note:'White continues. AlphaGo: 82%.'},
+    {r:8,c:13,col:1,note:'Black cuts in from below. The board is becoming extremely complex.'},
+    {r:9,c:13,col:2,note:'White connects. AlphaGo has no fear of complexity \u2014 it reads everything.'},
+    {r:10,c:13,col:1,note:'Lee moves to the right side. He needs to find territory somewhere.'},
+    {r:10,c:14,col:2,note:'White follows. AlphaGo: 84% confidence. Lee\u2019s position looks hopeless.'},
+    {r:11,c:14,col:1,note:'Black pushes down. Lee is making the position as complicated as possible.'},
+    {r:12,c:14,col:2,note:'White extends. The endgame is approaching. AlphaGo will win by territory.'},
+    {r:11,c:13,col:1,note:'Lee plays a wedge \u2014 creating two threats at once. AlphaGo\'s win probability: 84%.'},
+    {r:11,c:15,col:2,note:'White blocks one threat. AlphaGo selects the highest-value defence.'},
+    {r:12,c:13,col:1,note:'Black exploits the other threat. Lee is fighting for every point.'},
+    {r:13,c:13,col:2,note:'White defends. AlphaGo: 85%.'},
+    {r:14,c:13,col:1,note:'Lee creates another threat on the right side. He refuses to simplify.'},
+    {r:14,c:14,col:2,note:'White blocks again. AlphaGo is calm. Confidence: 86%.'},
+    {r:13,c:14,col:1,note:'Black connects. Lee is keeping every fight alive simultaneously.'},
+    {r:13,c:15,col:2,note:'White plays a key point. AlphaGo secures its right side territory.'},
+    {r:14,c:15,col:1,note:'Lee blocks. He is fighting for the last big territory on the board.'},
+    {r:14,c:16,col:2,note:'White extends. AlphaGo: 87%.'},
+    {r:13,c:16,col:1,note:'Black blocks White\u2019s extension. The right side battle intensifies.'},
+    {r:12,c:16,col:2,note:'White jumps. AlphaGo secures the corner.'},
+    {r:12,c:15,col:1,note:'Black cuts. Lee is trying one last separation attack.'},
+    {r:11,c:16,col:2,note:'White connects. AlphaGo: 88% confidence.'},
+    {r:10,c:16,col:1,note:'MOVE 78 \u2014 THE DIVINE MOVE. Lee Sedol plays a shoulder hit at the 11-4 point. No professional or AI had ever played this move in this position. Lee later said: \u201cI wasn\u2019t thinking at the time. My hand just moved there.\u201d AlphaGo\u2019s win probability dropped from 87% to below 50% in an instant. The DeepMind team later said they had never seen the system so rattled. The crowd gasped audibly.'},
+    {r:9,c:16,col:2,note:'AlphaGo recovers. It finds the best response to Move 78 \u2014 but the damage is done. Win probability: 51%.'},
+    {r:8,c:16,col:1,note:'Lee follows up perfectly. The position has completely transformed. Black\u2019s right group is now a powerful attacking force.'},
+    {r:8,c:15,col:2,note:'White defends desperately. AlphaGo is recalculating everything. Confidence: 52%.'},
+    {r:7,c:15,col:1,note:'Black captures a key white stone. Lee has won the right side battle. Win probability swings back toward 50%.'},
+    {r:6,c:14,col:2,note:'White counterattacks on the left. AlphaGo recovers its composure. Confidence: 56%.'},
+    {r:5,c:14,col:1,note:'Lee blocks. He is fighting on all fronts simultaneously.'},
+    {r:5,c:13,col:2,note:'White extends. AlphaGo\u2019s calculation: if it can secure the upper area, it wins by a few points. Confidence: 60%.'},
+    {r:4,c:13,col:1,note:'Black wedges in. Lee is not giving up the upper area without a fight.'},
+    {r:4,c:14,col:2,note:'White defends. AlphaGo: 63%.'},
+    {r:3,c:14,col:1,note:'Lee creates pressure on White\u2019s upper stones. The reading is extremely complex.'},
+    {r:3,c:15,col:2,note:'White stabilises. AlphaGo calculates a clear path to victory. Confidence: 68%.'},
+    {r:2,c:15,col:1,note:'Black plays a final boundary move. Lee has taken all the territory he can.'},
+    {r:2,c:14,col:2,note:'White secures. AlphaGo: 73%. The endgame begins.'},
+    {r:1,c:14,col:1,note:'Lee plays a boundary point. He is counting territory \u2014 he needs to be within 6.5 points (komi).'},
+    {r:1,c:15,col:2,note:'White blocks. AlphaGo secures its corner territory. Confidence: 76%.'},
+    {r:0,c:15,col:1,note:'Black takes the edge point. Every point matters.'},
+    {r:0,c:14,col:2,note:'White extends. AlphaGo has won this corner. Confidence: 79%.'},
+    {r:0,c:13,col:1,note:'Lee takes the last meaningful point on the top. He is behind but still fighting.'},
+    {r:16,c:3,col:2,note:'White plays a large move in the lower left. AlphaGo secures territory. Confidence: 81%.'},
+    {r:16,c:4,col:1,note:'Black blocks. Lee prevents White from taking more.'},
+    {r:17,c:3,col:2,note:'White extends to the edge. AlphaGo: 83%.'},
+    {r:16,c:5,col:1,note:'Black defends the corner. Lee is calculating whether he has enough territory.'},
+    {r:17,c:5,col:2,note:'White secures the side. AlphaGo: 85%.'},
+    {r:16,c:6,col:1,note:'Lee extends. He is trying to cut into White\u2019s lower territory.'},
+    {r:15,c:6,col:2,note:'White blocks immediately. AlphaGo: 87%.'},
+    {r:15,c:7,col:1,note:'Black pushes. Lee is fighting to the very end.'},
+    {r:14,c:7,col:2,note:'White blocks. AlphaGo: 88%.'},
+    {r:13,c:7,col:1,note:'Lee connects his stones on the left. He is maximising his territory count.'},
+    {r:12,c:7,col:2,note:'White responds efficiently. AlphaGo: 89%.'},
+    {r:11,c:7,col:1,note:'Black secures his left group. Lee\u2019s territory count: he is behind by approximately 8 points.'},
+    {r:11,c:8,col:2,note:'White plays a reduction move. AlphaGo is methodically converting its advantage.'},
+    {r:10,c:8,col:1,note:'Lee Sedol resigns. He tips his bowl. A long silence. Then the crowd applauds \u2014 not for AlphaGo\u2019s win, but for what happened at Move 78. One human move in 200 that shocked a superhuman AI. It will never be forgotten.'}
+  ]},
+  {title:'Lee Sedol vs AlphaGo \u2014 Game 2 (2016)',black:'Lee Sedol',white:'AlphaGo',result:'White wins by resignation',note:'The game containing Move 37 \u2014 a move so unusual that professional commentators initially called it a mistake. It was not. It was the move that announced AlphaGo was playing a different game entirely.',
+   moves:[
+    {r:3,c:3,col:1,note:'Black opens. Classical approach to the 4-4 point.'},
+    {r:15,c:15,col:2,note:'White mirrors in the opposite corner. AlphaGo favours diagonal symmetry in openings.'},
+    {r:3,c:15,col:1,note:'Black claims the upper right corner.'},
+    {r:15,c:3,col:2,note:'White takes lower left. All four corners are claimed.'},
+    {r:2,c:15,col:1,note:'Lee approaches White\u2019s upper right corner with a pincer.'},
+    {r:4,c:14,col:2,note:'White extends. A standard joseki response.'},
+    {r:2,c:14,col:1,note:'Black cuts in. Lee is playing aggressively from the first moves.'},
+    {r:2,c:13,col:2,note:'White slides out. AlphaGo: 52%. The position is balanced.'},
+    {r:3,c:13,col:1,note:'Black blocks. Lee keeps pressure on White\u2019s corner stones.'},
+    {r:3,c:14,col:2,note:'White connects. AlphaGo stabilises the upper right.'},
+    {r:4,c:13,col:1,note:'Lee cuts underneath. A fighting move.'},
+    {r:5,c:13,col:2,note:'White extends down. AlphaGo: 53%.'},
+    {r:5,c:14,col:1,note:'Black pushes. Lee is creating a wall to attack with.'},
+    {r:6,c:14,col:2,note:'White falls back. AlphaGo accepts a small loss to maintain sente.'},
+    {r:5,c:15,col:1,note:'Black connects the cutting stones. Lee has a strong wall facing the centre.'},
+    {r:5,c:16,col:2,note:'White plays a new direction. AlphaGo shifts focus.'},
+    {r:4,c:16,col:1,note:'Lee blocks. He is keeping White confined to the corner.'},
+    {r:3,c:16,col:2,note:'White takes the corner territory. A local trade: White has territory, Black has wall influence.'},
+    {r:9,c:9,col:1,note:'Lee plays tengen \u2014 the very centre of the board. A statement of territorial ambition.'},
+    {r:10,c:3,col:2,note:'White ignores the centre and plays a large knight\u2019s move on the left. AlphaGo values this over responding to tengen.'},
+    {r:9,c:3,col:1,note:'Lee approaches. A standard response to White\u2019s extension.'},
+    {r:9,c:4,col:2,note:'White pincers aggressively. AlphaGo: 54%.'},
+    {r:9,c:5,col:1,note:'Black escapes. Lee runs his stone toward the centre.'},
+    {r:9,c:6,col:2,note:'White blocks. The chase is on.'},
+    {r:8,c:5,col:1,note:'Black cuts. Lee creates complexity in the pursuit.'},
+    {r:8,c:4,col:2,note:'White blocks the cut. AlphaGo: 55%.'},
+    {r:7,c:4,col:1,note:'Black pushes. Lee is trying to break through White\u2019s left side.'},
+    {r:7,c:5,col:2,note:'White blocks again. The left side is becoming a battle.'},
+    {r:7,c:6,col:1,note:'Lee pushes further. He is aiming to split White\u2019s formation.'},
+    {r:7,c:7,col:2,note:'White extends. AlphaGo: 57%.'},
+    {r:6,c:7,col:1,note:'Black wedges in. Lee creates a cutting threat.'},
+    {r:6,c:8,col:2,note:'White extends to the right. AlphaGo: 58%.'},
+    {r:5,c:8,col:1,note:'Lee pushes up. He is building a large framework in the upper centre.'},
+    {r:5,c:9,col:2,note:'White blocks. AlphaGo prevents Black from building a moyo.'},
+    {r:4,c:9,col:1,note:'Black cuts in. Lee creates a new battle in the centre.'},
+    {r:4,c:8,col:2,note:'White captures the cutting stone. AlphaGo: 59%.'},
+    {r:3,c:9,col:1,note:'Black plays the shoulder hit at the 4-10 point. Lee is trying to destabilise White\u2019s centre structure.'},
+    {r:3,c:10,col:2,note:'MOVE 37. AlphaGo plays the 5th line shoulder hit \u2014 a move so unusual that the commentators said \u201cAI has made a mistake.\u201d Professional 9-dan players watching live called it an error. None of them had ever seen this move in this position. AlphaGo played it because its value network assigned it a win probability 8 points higher than any alternative. The machine was right. The humans were wrong. This moment changed how professionals think about Go.'},
+    {r:4,c:10,col:1,note:'Lee responds. He is confused \u2014 he later said he had to take a long break to reconsider his entire strategy.'},
+    {r:3,c:11,col:2,note:'White continues. AlphaGo: 61%. Move 37 has already shifted the balance.'},
+    {r:2,c:11,col:1,note:'Black blocks. Lee is adapting to the unexpected White structure.'},
+    {r:2,c:10,col:2,note:'White extends. AlphaGo: 62%. The alien sequence continues.'},
+    {r:1,c:10,col:1,note:'Lee pushes. He is testing whether White\u2019s unusual structure has weaknesses.'},
+    {r:1,c:11,col:2,note:'White strengthens. AlphaGo: 63%. Move 37\u2019s influence is growing.'}
+  ]},
+  {title:'AlphaGo Master vs Ke Jie \u2014 Game 1 (2017)',black:'AlphaGo Master',white:'Ke Jie',result:'Black wins by half a point',note:'The closest game of the 2017 Future of Go Summit. AlphaGo won by the smallest margin possible \u2014 0.5 points (komi). Ke Jie described it as \u201cplaying against a mirror that knows every weakness.\u201d',
+   moves:[
+    {r:3,c:3,col:1,note:'AlphaGo opens at the 4-4 point. No surprise \u2014 it has played this millions of times.'},
+    {r:3,c:15,col:2,note:'Ke Jie mirrors. He opens with the same classical approach.'},
+    {r:15,c:15,col:1,note:'AlphaGo takes the third corner. The symmetry is already breaking.'},
+    {r:15,c:3,col:2,note:'Ke Jie completes the four corners. The global strategy begins.'},
+    {r:5,c:3,col:1,note:'AlphaGo immediately plays a 3-space extension on the left. An AI-influenced joseki that is now standard.'},
+    {r:5,c:15,col:2,note:'Ke Jie responds symmetrically. He is mirroring AlphaGo\u2019s choices.'},
+    {r:9,c:3,col:1,note:'AlphaGo extends to the 10-4 point. A large territorial claim.'},
+    {r:9,c:15,col:2,note:'Ke Jie mirrors again. He is refusing to let AlphaGo dictate the pace.'},
+    {r:9,c:9,col:1,note:'AlphaGo plays tengen. Centre claim.'},
+    {r:6,c:9,col:2,note:'Ke Jie plays a pincer. He refuses to allow AlphaGo a comfortable framework.'},
+    {r:7,c:9,col:1,note:'AlphaGo responds lightly. It does not fight the pincer directly.'},
+    {r:8,c:9,col:2,note:'Ke Jie extends. He is building thickness facing AlphaGo\u2019s centre stone.'},
+    {r:7,c:10,col:1,note:'AlphaGo connects. A patient move \u2014 it is managing multiple frameworks.'},
+    {r:7,c:11,col:2,note:'Ke Jie attaches. He is testing AlphaGo\u2019s response.'},
+    {r:6,c:11,col:1,note:'AlphaGo blocks. The upper centre becomes a local battle.'},
+    {r:6,c:12,col:2,note:'Ke Jie extends. He is building a wall.'},
+    {r:5,c:12,col:1,note:'AlphaGo cuts. A sharp move \u2014 it does not allow Ke Jie to build freely.'},
+    {r:4,c:12,col:2,note:'Ke Jie blocks. The reading is becoming complex.'},
+    {r:4,c:11,col:1,note:'AlphaGo cuts again. Multiple simultaneous fights.'},
+    {r:3,c:11,col:2,note:'Ke Jie captures. He has solidified his upper right area.'},
+    {r:3,c:10,col:1,note:'AlphaGo responds. The exchange has given White a strong upper right corner.'},
+    {r:2,c:10,col:2,note:'Ke Jie extends. He is pushing for territory along the top.'},
+    {r:2,c:9,col:1,note:'AlphaGo blocks. The top is contested.'},
+    {r:1,c:9,col:2,note:'Ke Jie pushes. He is fighting for every point along the top edge.'},
+    {r:1,c:8,col:1,note:'AlphaGo descends. A patient territorial response.'},
+    {r:2,c:8,col:2,note:'Ke Jie blocks. The position in the upper area is becoming very tight.'},
+    {r:2,c:7,col:1,note:'AlphaGo cuts. It refuses to allow Ke Jie easy connection.'},
+    {r:3,c:7,col:2,note:'Ke Jie blocks. The local battle is even.'},
+    {r:3,c:6,col:1,note:'AlphaGo extends. It is building shape while securing points.'},
+    {r:4,c:6,col:2,note:'Ke Jie responds. Both players are maximising efficiency in the upper area.'},
+    {r:4,c:5,col:1,note:'AlphaGo plays the key point \u2014 connecting its stones along the top. This is where the game was decided. AlphaGo wins by 0.5 points.'}
+  ]},
+  {title:'AlphaGo Zero Self-Play Game (2017)',black:'AlphaGo Zero v1',white:'AlphaGo Zero v1',result:'Black wins by 12 points',note:'A game AlphaGo Zero played against itself after 3 days of training from scratch. No human data. No human strategy. Pure self-discovered theory. The moves are unlike anything in the human record.',
+   moves:[
+    {r:2,c:3,col:1,note:'Zero opens at 3-4. Unusual \u2014 human tradition prefers 4-4 (hoshi). Zero discovered independently that 3-4 produces favourable trading positions in certain configurations.'},
+    {r:2,c:15,col:2,note:'White mirrors. Zero vs Zero \u2014 two instances of the same weights. The game will determine which colour\u2019s first-move advantage is worth more.'},
+    {r:15,c:15,col:1,note:'Black claims the lower right corner.'},
+    {r:15,c:3,col:2,note:'White takes lower left.'},
+    {r:3,c:16,col:1,note:'An immediate 3-3 invasion. Zero discovered this as optimal for Black in many positions \u2014 it was extremely rare in pre-2017 human professional games. After AlphaGo, it became a standard professional opening.'},
+    {r:4,c:16,col:2,note:'White blocks. The traditional response is to block on the other side \u2014 Zero knows both options lead to equivalent positions.'},
+    {r:3,c:17,col:1,note:'Black extends into the corner. The 3-3 invasion joseki that AlphaGo made famous.'},
+    {r:4,c:17,col:2,note:'White blocks from above.'},
+    {r:5,c:17,col:1,note:'Black plays in the corner.'},
+    {r:5,c:16,col:2,note:'White connects. The corner joseki is complete. Black has the corner, White has influence.'},
+    {r:9,c:9,col:1,note:'Black plays tengen. Zero finds this valuable in many self-play games \u2014 the centre stone exerts pressure in every direction simultaneously.'},
+    {r:16,c:9,col:2,note:'White ignores tengen and plays a large territorial claim on the bottom. Zero judges this worth more than responding to the centre stone.'},
+    {r:16,c:3,col:1,note:'Black approaches White\u2019s bottom left. The game becomes a battle of territorial efficiency.'},
+    {r:15,c:5,col:2,note:'White pincers. A move rarely seen in pre-AlphaGo games. Zero rediscovered it as a high-value option.'},
+    {r:16,c:6,col:1,note:'Black jumps. Zero plays lightly \u2014 avoiding contact fights where possible.'},
+    {r:14,c:6,col:2,note:'White cuts in. The game becomes tactical.'},
+    {r:13,c:6,col:1,note:'Black extends. Zero is building a framework along the bottom left.'},
+    {r:13,c:3,col:2,note:'White plays a key attachment. An AI-discovered tesuji.'},
+    {r:12,c:3,col:1,note:'Black connects. The local battle is balanced.'},
+    {r:11,c:3,col:2,note:'White extends. Both sides are managing the bottom left carefully.'},
+    {r:10,c:3,col:1,note:'Black jumps. Zero maintains its framework.'},
+    {r:9,c:3,col:2,note:'White blocks. The left side becomes contested.'},
+    {r:8,c:3,col:1,note:'Black cuts. A sharp tactical move.'},
+    {r:7,c:3,col:2,note:'White responds. The battle continues.'},
+    {r:6,c:3,col:1,note:'Black pushes through. Zero is fighting for the left side territory.'},
+    {r:5,c:3,col:2,note:'White blocks. AlphaGo Zero: the position is estimated at 54% for Black.'},
+    {r:4,c:3,col:1,note:'Black plays the 3-3 invasion in the upper left corner. A second 3-3 in one game \u2014 Zero discovered this as highly efficient when the opponent has stones nearby.'},
+    {r:5,c:2,col:2,note:'White blocks.'},
+    {r:3,c:2,col:1,note:'Black extends. The 3-3 joseki again.'},
+    {r:4,c:2,col:2,note:'White blocks from above.'},
+    {r:3,c:3,col:1,note:'Black secures the corner. Two 3-3 invasions completed. Black has solid corner territory.'},
+    {r:2,c:3,col:2,note:'White takes the 3-4 point. The upper left is settled. Black: 57% win probability.'},
+    {r:7,c:9,col:1,note:'Black plays a large knight\u2019s move toward the centre. Building a framework from tengen.'},
+    {r:7,c:15,col:2,note:'White responds with a symmetrical framework claim. Zero vs Zero: perfect mirroring where advantageous.'},
+    {r:11,c:9,col:1,note:'Black extends the framework downward. Building a large centre potential.'},
+    {r:11,c:15,col:2,note:'White mirrors again. The game is strikingly symmetrical for two instances of the same AI.'},
+    {r:9,c:7,col:1,note:'Black breaks the symmetry with a left-leaning move. This is the point where Black\u2019s corner advantage begins to matter.'},
+    {r:9,c:11,col:2,note:'White responds symmetrically \u2014 but the game is no longer symmetric. Black wins by 12 points.'}
+  ]}
+];
+
+function rpDraw(){
+  var cv=document.getElementById('rp-canvas');if(!cv)return;
+  var N=9,C=36,P=20;
+  cv.width=N*C+P*2;cv.height=N*C+P*2;
+  var ctx=cv.getContext('2d');
+  ctx.fillStyle='#c4913a';ctx.fillRect(0,0,cv.width,cv.height);
+  ctx.strokeStyle='#7a5c20';ctx.lineWidth=.8;
+  for(var i=0;i<N;i++){ctx.beginPath();ctx.moveTo(P+i*C,P);ctx.lineTo(P+i*C,P+(N-1)*C);ctx.stroke();ctx.beginPath();ctx.moveTo(P,P+i*C);ctx.lineTo(P+(N-1)*C,P+i*C);ctx.stroke();}
+  ctx.fillStyle='#5a420a';
+  [[2,2],[2,6],[6,2],[6,6],[4,4]].forEach(function(s){ctx.beginPath();ctx.arc(P+s[0]*C,P+s[1]*C,2.5,0,Math.PI*2);ctx.fill();});
+  var g=RP_GAMES[RP.gameIdx];if(!g)return;
+  var moves=g.moves.slice(0,RP.cur);
+  var bd=Array(N).fill(null).map(function(){return Array(N).fill(0);});
+  moves.forEach(function(m){if(m.r<N&&m.c<N)bd[m.r][m.c]=m.col;});
+  for(var r=0;r<N;r++){for(var c=0;c<N;c++){var v=bd[r][c];if(!v)continue;var x=P+c*C,y=P+r*C,rad=Math.max(1,C*.44);
+    ctx.save();ctx.shadowColor='rgba(0,0,0,.5)';ctx.shadowBlur=4;ctx.shadowOffsetX=1;ctx.shadowOffsetY=1;
+    var gg;if(v===1){gg=ctx.createRadialGradient(x-rad*.3,y-rad*.32,Math.max(0,rad*.04),x,y,Math.max(1,rad));gg.addColorStop(0,'#555');gg.addColorStop(.5,'#1a1a1a');gg.addColorStop(1,'#080808');}
+    else{gg=ctx.createRadialGradient(x-rad*.3,y-rad*.32,Math.max(0,rad*.06),x,y,Math.max(1,rad));gg.addColorStop(0,'#fff');gg.addColorStop(.5,'#f0ece0');gg.addColorStop(1,'#d0c8b0');}
+    ctx.fillStyle=gg;ctx.beginPath();ctx.arc(x,y,rad,0,Math.PI*2);ctx.fill();ctx.restore();}}
+  // Last stone marker
+  if(RP.cur>0){var lm=moves[moves.length-1];if(lm&&lm.r<N&&lm.c<N){var lx=P+lm.c*C,ly=P+lm.r*C;ctx.strokeStyle=lm.col===1?'rgba(255,255,255,.7)':'rgba(0,0,0,.5)';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(lx,ly,C*.18,0,Math.PI*2);ctx.stroke();}}
+  // Move number on last stone
+  if(RP.cur>0&&moves.length){var lm2=moves[moves.length-1];if(lm2&&lm2.r<N&&lm2.c<N){ctx.font='bold '+Math.floor(C*.35)+'px Segoe UI';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=lm2.col===1?'rgba(255,255,255,.8)':'rgba(0,0,0,.7)';ctx.fillText(RP.cur,P+lm2.c*C,P+lm2.r*C);}}
+}
+
+function rpUpdateUI(){
+  var g=RP_GAMES[RP.gameIdx];if(!g)return;
+  var total=g.moves.length;
+  document.getElementById('rp-num').textContent='Move '+RP.cur+' / '+total;
+  document.getElementById('rp-slider').max=total;
+  document.getElementById('rp-slider').value=RP.cur;
+  var comment='';
+  if(RP.cur===0){comment='<em>'+g.note+'</em>';}
+  else{var m=g.moves[RP.cur-1];if(m)comment=m.note||'';}
+  document.getElementById('rp-comment').textContent=comment;
+  document.getElementById('rp-badge').textContent=RP.cur===0?'Start':('Move '+RP.cur+(g.moves[RP.cur-1]?g.moves[RP.cur-1].col===1?' \u2014 Black':' \u2014 White':''));
+  rpDraw();
+}
+
+function rpLoad(idx){
+  RP.gameIdx=parseInt(idx);RP.cur=0;
+  if(RP.autoTimer){clearInterval(RP.autoTimer);RP.autoTimer=null;document.getElementById('rp-auto').textContent='\u25b6 Auto';}
+  var g=RP_GAMES[RP.gameIdx];
+  document.getElementById('rp-badge').textContent=g?g.title.substring(0,20)+'...':'';
+  document.getElementById('rp-info').innerHTML=g?('<div class="panel-title">Game Information</div><div style="font-family:\'Segoe UI\',sans-serif;font-size:12px;color:var(--paper2);line-height:1.85"><div><strong style="color:var(--paper)">Black:</strong> '+g.black+'</div><div><strong style="color:var(--paper)">White:</strong> '+g.white+'</div><div><strong style="color:var(--paper)">Result:</strong> '+g.result+'</div><div style="margin-top:.5rem">'+g.note+'</div></div>'):'';
+  rpUpdateUI();
+}
+function rpFirst(){RP.cur=0;rpUpdateUI();}
+function rpPrev(){if(RP.cur>0)RP.cur--;rpUpdateUI();}
+function rpNext(){var g=RP_GAMES[RP.gameIdx];if(g&&RP.cur<g.moves.length)RP.cur++;rpUpdateUI();}
+function rpLast(){var g=RP_GAMES[RP.gameIdx];if(g)RP.cur=g.moves.length;rpUpdateUI();}
+function rpSlider(v){RP.cur=parseInt(v);rpUpdateUI();}
+function rpToggleAuto(){
+  if(RP.autoTimer){clearInterval(RP.autoTimer);RP.autoTimer=null;document.getElementById('rp-auto').textContent='\u25b6 Auto';return;}
+  document.getElementById('rp-auto').textContent='\u23f8 Stop';
+  RP.autoTimer=setInterval(function(){var g=RP_GAMES[RP.gameIdx];if(!g||RP.cur>=g.moves.length){clearInterval(RP.autoTimer);RP.autoTimer=null;document.getElementById('rp-auto').textContent='\u25b6 Auto';return;}RP.cur++;rpUpdateUI();},1200);
+}
+window.rpLoad=rpLoad;window.rpFirst=rpFirst;window.rpPrev=rpPrev;window.rpNext=rpNext;window.rpLast=rpLast;window.rpSlider=rpSlider;window.rpToggleAuto=rpToggleAuto;
+
+/* ====================================================
+   LIFE & DEATH PUZZLES
+   ==================================================== */
+var PZ={cur:0,solved:0,attempted:0,hinted:false};
+
+var PZ_DATA=[
+  {title:'The One-Eyed Dragon',goal:'Black to live',size:7,stones:[
+    {r:1,c:1,col:1},{r:1,c:2,col:1},{r:1,c:3,col:1},{r:2,c:1,col:1},{r:2,c:3,col:1},{r:3,c:1,col:1},{r:3,c:2,col:1},{r:3,c:3,col:1},
+    {r:0,c:1,col:2},{r:0,c:2,col:2},{r:0,c:3,col:2},{r:1,c:0,col:2},{r:2,c:0,col:2},{r:3,c:0,col:2},{r:4,c:1,col:2},{r:4,c:2,col:2},{r:4,c:3,col:2},{r:1,c:4,col:2},{r:2,c:4,col:2},{r:3,c:4,col:2}
+  ],answer:{r:2,c:2},hint:'Look for the vital point that creates two eyes.',explain:'Playing at the centre (2,2) creates two separate eye spaces \u2014 top and bottom. A group with two real eyes can never be captured. This is the fundamental life principle in Go.',correct:'Correct! The centre point creates two eyes. Black lives.',wrong:'Not quite. That move does not create two eyes. Black dies.'},
+  {title:'Capture to Live',goal:'Black to capture White stones and live',size:7,stones:[
+    {r:0,c:0,col:1},{r:0,c:1,col:1},{r:0,c:2,col:1},{r:1,c:0,col:1},{r:1,c:2,col:1},{r:2,c:0,col:1},{r:2,c:1,col:1},{r:2,c:2,col:1},
+    {r:1,c:1,col:2},{r:0,c:3,col:2},{r:1,c:3,col:2},{r:2,c:3,col:2},{r:3,c:0,col:2},{r:3,c:1,col:2},{r:3,c:2,col:2}
+  ],answer:{r:1,c:1},hint:'The white stone inside Black\'s group has only one liberty.',explain:'The White stone at (1,1) has zero liberties after Black plays there \u2014 it is in atari. Capturing it creates an eye inside the group, making Black alive. This is the "capture to live" tesuji.',correct:'Correct! Capturing the white stone creates a vital eye. Black lives.',wrong:'Incorrect. Try looking for the white stone that can be immediately captured.'},
+  {title:'False Eye',goal:'Black to make two real eyes',size:7,stones:[
+    {r:0,c:0,col:1},{r:0,c:1,col:1},{r:0,c:2,col:1},{r:1,c:0,col:1},{r:1,c:2,col:1},{r:2,c:0,col:1},{r:2,c:1,col:1},{r:2,c:2,col:1},
+    {r:3,c:0,col:2},{r:3,c:1,col:2},{r:3,c:2,col:2},{r:0,c:3,col:2},{r:1,c:3,col:2},{r:2,c:3,col:2}
+  ],answer:{r:1,c:1},hint:'The group has a false eye. Find the move that makes it real.',explain:'The space at (1,1) appears to be an eye but White can play there if Black does not. Playing at (1,1) first makes it a genuine eye. Combined with the top edge, Black now has two real eyes and lives.',correct:'Correct! You sealed the false eye into a real one. Black lives.',wrong:'Incorrect. The group still has a false eye that White can fill.'},
+  {title:'Ko Threat',goal:'Black to create a ko fight and escape',size:7,stones:[
+    {r:0,c:3,col:1},{r:0,c:4,col:1},{r:1,c:3,col:1},{r:1,c:5,col:1},{r:2,c:3,col:1},{r:2,c:4,col:1},{r:2,c:5,col:1},
+    {r:0,c:5,col:2},{r:1,c:4,col:2},{r:0,c:2,col:2},{r:1,c:2,col:2},{r:2,c:2,col:2},{r:3,c:3,col:2},{r:3,c:4,col:2},{r:3,c:5,col:2}
+  ],answer:{r:1,c:4},hint:'The White stone at (1,4) is the key. It has only one liberty.',explain:'Capturing the White stone at (1,4) creates a ko situation. White cannot immediately recapture (ko rule). This gives Black time to play a ko threat elsewhere, potentially winning the entire fight. Ko is the most complex tactical element in Go.',correct:'Correct! You created a ko. Black has fighting chance now.',wrong:'Incorrect. Look for the white stone that creates a ko when captured.'},
+  {title:'Snapback',goal:'Black to capture three White stones',size:7,stones:[
+    {r:1,c:1,col:1},{r:1,c:2,col:1},{r:1,c:3,col:1},{r:2,c:0,col:1},{r:2,c:4,col:1},{r:3,c:1,col:1},{r:3,c:2,col:1},{r:3,c:3,col:1},
+    {r:2,c:1,col:2},{r:2,c:2,col:2},{r:2,c:3,col:2}
+  ],answer:{r:2,c:2},hint:'This is a snapback. Play inside the White group.',explain:'Playing at (2,2) \u2014 inside the White group \u2014 appears suicidal but is a snapback tesuji. White must capture a stone, but that capture reduces White\'s own liberties to zero. Black then captures three White stones in the resulting position. Snapback is one of the most satisfying tactics in Go.',correct:'Snapback! The White group is captured. Excellent reading.',wrong:'Incorrect. Try playing inside the White group \u2014 it looks illegal but is not.'},
+  {title:'Ladder',goal:'Black to prove the ladder works',size:7,stones:[
+    {r:0,c:6,col:1},{r:0,c:5,col:1},{r:1,c:5,col:2},{r:1,c:6,col:2},{r:2,c:6,col:2}
+  ],answer:{r:0,c:6},hint:'The White stone at (1,6) has one liberty. Where does the ladder go?',explain:'A ladder (Shicho) chases a stone diagonally across the board, reducing liberties at each step. The stone cannot escape \u2014 it hits the edge. The attacker must correctly start the sequence. This is the most fundamental long-range reading in Go.',correct:'Correct ladder start! White cannot escape to the edge.',wrong:'Incorrect. The ladder must start from the correct direction.'},
+  {title:'Placement to Kill',goal:'Black to kill the White group',size:7,stones:[
+    {r:1,c:1,col:2},{r:1,c:2,col:2},{r:1,c:3,col:2},{r:2,c:1,col:2},{r:2,c:3,col:2},{r:3,c:1,col:2},{r:3,c:2,col:2},{r:3,c:3,col:2},
+    {r:0,c:1,col:1},{r:0,c:2,col:1},{r:0,c:3,col:1},{r:1,c:0,col:1},{r:2,c:0,col:1},{r:3,c:0,col:1},{r:4,c:1,col:1},{r:4,c:2,col:1},{r:4,c:3,col:1},{r:1,c:4,col:1},{r:2,c:4,col:1},{r:3,c:4,col:1}
+  ],answer:{r:2,c:2},hint:'White has only one eye. Find the vital point to prevent the second.',explain:'Playing at (2,2) \u2014 the only interior point \u2014 prevents White from ever forming two eyes. A group with only one eye is dead. This is the \u201cvital point\u201d of the group. Every dead group in Go has a vital point that the attacker must occupy to ensure the kill.',correct:'Vital point! White cannot form two eyes. The group is dead.',wrong:'Incorrect. White can still form two eyes. Find the vital point.'},
+  {title:'Bent-Four in Corner',goal:'Black to kill White',size:7,stones:[
+    {r:0,c:0,col:2},{r:0,c:1,col:2},{r:1,c:0,col:2},{r:1,c:2,col:2},{r:2,c:1,col:2},{r:2,c:2,col:2},
+    {r:0,c:2,col:1},{r:0,c:3,col:1},{r:1,c:3,col:1},{r:2,c:3,col:1},{r:3,c:0,col:1},{r:3,c:1,col:1},{r:3,c:2,col:1}
+  ],answer:{r:1,c:1},hint:'The bent-four shape in the corner is always dead. Find the killing move.',explain:'The bent-four in the corner is one of the most famous dead shapes in Go. White appears to have two eyes, but Black can always create a ko \u2014 or in this case, kill directly with the vital point at (1,1). Under Japanese rules, bent-four in the corner is unconditionally dead without needing to play it out.',correct:'Correct! The bent-four is dead. White cannot live.',wrong:'Incorrect. Look at the inside vital point of the bent-four.'},
+  {title:'Approach Ko',goal:'Black to create a favourable ko',size:7,stones:[
+    {r:0,c:0,col:1},{r:0,c:1,col:1},{r:1,c:0,col:1},{r:2,c:0,col:1},{r:2,c:1,col:1},
+    {r:0,c:2,col:2},{r:1,c:1,col:2},{r:1,c:2,col:2},{r:2,c:2,col:2},{r:3,c:0,col:2},{r:3,c:1,col:2}
+  ],answer:{r:1,c:1},hint:'Playing here creates a ko. This is called an approach ko.',explain:'An approach ko requires one side to make additional moves before they can capture. By playing at (1,1), Black creates a ko fight where Black has the advantage \u2014 White must make an approach move before being able to recapture. Ko strategy is one of the deepest aspects of Go.',correct:'Correct! You created an approach ko in Black\'s favour.',wrong:'Incorrect. Try a different point to create the ko.'},
+  {title:'Seki',goal:'Black to create a seki (mutual life)',size:7,stones:[
+    {r:1,c:1,col:1},{r:1,c:2,col:1},{r:2,c:1,col:1},{r:3,c:2,col:1},
+    {r:0,c:1,col:2},{r:0,c:2,col:2},{r:1,c:3,col:2},{r:2,c:2,col:2},{r:2,c:3,col:2},{r:3,c:1,col:2},{r:4,c:2,col:2}
+  ],answer:{r:2,c:2},hint:'Neither group can capture the other. Find the move that creates mutual life.',explain:'Seki is a position where neither group can capture the other \u2014 both live without two eyes. By playing at (2,2), Black creates a position where both players share a liberty. If either side captures there, their own group dies. This unusual concept of \u201cmutual life\u201d is unique to Go.',correct:'Seki! Neither group can capture the other. Both live.',wrong:'Incorrect. Try to create a position where neither group can capture the other.'}
+];
+
+function pzDrawBoard(canvasId,stones,highlight,N){
+  var cv=document.getElementById(canvasId);if(!cv)return;
+  var C=Math.floor(Math.min(300,cv.parentElement?cv.parentElement.offsetWidth-40:280)/(N+1));
+  var P=Math.max(14,C*.6);
+  cv.width=(N-1)*C+P*2;cv.height=(N-1)*C+P*2;
+  var ctx=cv.getContext('2d');
+  ctx.fillStyle='#c4913a';ctx.fillRect(0,0,cv.width,cv.height);
+  ctx.strokeStyle='#7a5c20';ctx.lineWidth=.8;
+  for(var i=0;i<N;i++){ctx.beginPath();ctx.moveTo(P+i*C,P);ctx.lineTo(P+i*C,P+(N-1)*C);ctx.stroke();ctx.beginPath();ctx.moveTo(P,P+i*C);ctx.lineTo(P+(N-1)*C,P+i*C);ctx.stroke();}
+  stones.forEach(function(s){if(s.r>=N||s.c>=N)return;var x=P+s.c*C,y=P+s.r*C,rad=Math.max(1,C*.43);
+    ctx.save();ctx.shadowColor='rgba(0,0,0,.45)';ctx.shadowBlur=3;ctx.shadowOffsetX=1;ctx.shadowOffsetY=1;
+    var g;if(s.col===1){g=ctx.createRadialGradient(x-rad*.3,y-rad*.32,Math.max(0,rad*.04),x,y,Math.max(1,rad));g.addColorStop(0,'#555');g.addColorStop(.5,'#1a1a1a');g.addColorStop(1,'#080808');}
+    else{g=ctx.createRadialGradient(x-rad*.3,y-rad*.32,Math.max(0,rad*.06),x,y,Math.max(1,rad));g.addColorStop(0,'#fff');g.addColorStop(.5,'#f0ece0');g.addColorStop(1,'#d0c8b0');}
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,rad,0,Math.PI*2);ctx.fill();ctx.restore();});
+  if(highlight){var hx=P+highlight.c*C,hy=P+highlight.r*C;ctx.strokeStyle='rgba(192,57,43,.8)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(hx,hy,C*.42,0,Math.PI*2);ctx.stroke();}
+}
+
+function pzLoad(idx){
+  PZ.cur=idx;PZ.hinted=false;
+  var pz=PZ_DATA[idx];if(!pz)return;
+  document.getElementById('pz-ttl').textContent=pz.title;
+  document.getElementById('pz-badge').textContent=pz.goal;
+  document.getElementById('pz-status').textContent='Find the correct move for Black.';
+  document.getElementById('pz-explain').textContent='';
+  pzDrawBoard('pz-canvas',pz.stones,null,pz.size);
+  // Click handler
+  var cv=document.getElementById('pz-canvas');var N=pz.size;
+  cv.onclick=function(e){
+    var rect=cv.getBoundingClientRect();var scaleX=cv.width/rect.width;var scaleY=cv.height/rect.height;
+    var x=(e.clientX-rect.left)*scaleX;var y=(e.clientY-rect.top)*scaleY;
+    var C=Math.floor(Math.min(300,cv.parentElement?cv.parentElement.offsetWidth-40:280)/(N+1));
+    var P=Math.max(14,C*.6);
+    var c=Math.round((x-P)/C);var r=Math.round((y-P)/C);
+    if(r<0||r>=N||c<0||c>=N)return;
+    var ans=pz.answer;var correct=(r===ans.r&&c===ans.c);
+    PZ.attempted++;
+    if(correct){PZ.solved++;pzDrawBoard('pz-canvas',pz.stones.concat([{r:r,c:c,col:1}]),null,N);document.getElementById('pz-status').textContent=pz.correct;document.getElementById('pz-explain').textContent=pz.explain;document.getElementById('pz-badge').textContent='Solved!';cv.onclick=null;}
+    else{pzDrawBoard('pz-canvas',pz.stones,{r:r,c:c},N);document.getElementById('pz-status').textContent=pz.wrong;}
+    document.getElementById('pz-score').textContent=PZ.solved+' / '+PZ.attempted+' solved';
+  };
+}
+function pzSelectBtn(idx,btn){
+  document.querySelectorAll('#pz-sel-row button').forEach(function(b){b.classList.remove('go-btn');});
+  if(btn)btn.classList.add('go-btn');
+  pzLoad(idx);
+}
+window.pzSelectBtn=pzSelectBtn;
+function pzHint(){var pz=PZ_DATA[PZ.cur];if(!pz)return;document.getElementById('pz-status').textContent='Hint: '+pz.hint;PZ.hinted=true;}
+function pzReset(){pzLoad(PZ.cur);}
+function pzSkip(){var next=(PZ.cur+1)%PZ_DATA.length;var btns=document.querySelectorAll('#pz-sel-row button');btns.forEach(function(b,i){b.classList.toggle('sp-active',i===next);});pzLoad(next);}
+window.pzHint=pzHint;window.pzReset=pzReset;window.pzSkip=pzSkip;
+
+/* ====================================================
+   PROVERBS
+   ==================================================== */
+var PROVERBS=[
+  {cat:'Opening',p:'Stones on the third line make territory; stones on the fourth line make influence.',e:'The third line (3 from edge) is efficient for securing territory. The fourth line projects influence toward the centre. Most joseki balance both.'},
+  {cat:'Opening',p:'Play away from thickness.',e:'Do not play close to your own strong positions. Develop toward open areas. Playing near your own thickness wastes its power.'},
+  {cat:'Opening',p:'The enemy\u2019s vital point is your vital point.',e:'Whatever move you most want to play, your opponent wants to play there too. Always check your opponent\u2019s strongest responses.'},
+  {cat:'Opening',p:'Do not approach thickness.',e:'Do not invade near your opponent\u2019s strong, well-connected groups. You will be attacked before you can secure life.'},
+  {cat:'Life & Death',p:'A group with two eyes cannot be killed.',e:'Two separate enclosed empty spaces (eyes) make a group unconditionally alive. No sequence of plays can capture it. This is the fundamental survival principle.'},
+  {cat:'Life & Death',p:'The vital point of the opponent is also your vital point.',e:'The key point that keeps your group alive is the same point that kills it if White plays there first. Always compete for vital points.'},
+  {cat:'Life & Death',p:'Six die, eight live.',e:'A rectangular group in the corner: six points cannot form two eyes, eight can. Seven is ko. This encodes the fundamental corner life-and-death shapes.'},
+  {cat:'Life & Death',p:'Don\u2019t play honte (proper shape) if your group is already dead.',e:'Once a group is truly dead, do not waste moves defending it. Preserve sente and fight elsewhere.'},
+  {cat:'Shape',p:'Don\u2019t make empty triangles.',e:'A triangle of three connected stones with one empty corner is inefficient shape. Two of the three stones are barely contributing. Avoid this configuration.'},
+  {cat:'Shape',p:'Make your stones work together.',e:'Stones near each other but not connected are weak. Build connected groups that share liberties and reinforce each other.'},
+  {cat:'Shape',p:'The knight\u2019s move has no head.',e:'A knight\u2019s move extension can always be cut. Before playing a knight\u2019s move, ensure you can handle the cut. Otherwise, choose a direct extension.'},
+  {cat:'Shape',p:'One point jump is never wrong in the middle game.',e:'When in doubt, a one-space jump (diagonal or straight) is almost always safe and useful. It extends quickly while remaining connected.'},
+  {cat:'Strategy',p:'Urgent moves before big moves.',e:'Respond to urgent threats (atari, life-and-death issues) before playing large territorial moves. A point saved from capture is worth more than a new territory point.'},
+  {cat:'Strategy',p:'Be first to play in the large open areas.',e:'The largest open areas of the board are the most valuable. Stake a claim there before your opponent can establish a foothold.'},
+  {cat:'Strategy',p:'If attacked, extend rather than connect.',e:'When your stone is threatened, extending to a new position often secures more value than simply connecting. Think about where you want to be, not just where you are.'},
+  {cat:'Strategy',p:'Do not chase weak stones if it builds your opponent\u2019s moyo.',e:'Chasing a weak group into your opponent\u2019s framework builds up their potential territory. Sometimes it is better to let stones run and take profit elsewhere.'},
+  {cat:'Endgame',p:'Count the score before you play the endgame.',e:'Before the endgame begins, estimate the score. If you are ahead, play safely. If behind, create complications. Endgame without counting is endgame without direction.'},
+  {cat:'Endgame',p:'Sente gains nothing, but gote loses half a point.',e:'In the endgame, sente moves are played first. A gote move (allowing the opponent to play elsewhere) loses half its theoretical value because you surrender the initiative.'},
+  {cat:'Endgame',p:'An empty triangle in the endgame is unforgivable.',e:'Shape errors in the middle game can be compensated. In the endgame, where every move is counted, inefficient shape is a direct loss of points.'},
+  {cat:'Fighting',p:'Sacrifice stones to build influence.',e:'A sacrifice (suji) trades a stone for a large-scale gain. Clinging to every stone is inefficient. Skilled players sacrifice freely when the compensation is worth it.'},
+  {cat:'Fighting',p:'Do not atari against thickness.',e:'Placing a stone in atari against a solid group only strengthens the opponent. The captured stone reinforces exactly where they were already strong.'},
+  {cat:'Fighting',p:'Do not push along the second line.',e:'The second line (two from edge) is the line of defeat. Pushing there gains very little territory and is often worse than playing elsewhere.'},
+  {cat:'Fighting',p:'Cut when you can; connect when you must.',e:'Cuts separate opponent groups and create weakness. Connections fortify your own position. The choice between them defines the direction of the fight.'},
+  {cat:'Philosophy',p:'Go is 99% strategy, 1% tactics.',e:'AlphaGo challenged this \u2014 its tactics are perfect because its strategy is perfect. For humans, however, strategic understanding drives results far more than tactical sharpness below the professional level.'},
+  {cat:'Philosophy',p:'Lose a game to win a player.',e:'A more experienced player who deliberately loses to teach a beginner gives a greater gift than a perfect teacher who always wins. Understanding beats victory.'},
+  {cat:'Philosophy',p:'When you lose, do not get upset. You have gained a lesson worth more than the game.',e:'Every game lost contains specific, concrete information about weaknesses. A defeat studied carefully is worth more than a careless victory.'},
+  {cat:'AlphaGo Era',p:'The AI does not know what is impossible.',e:'AlphaGo played moves that human players had declared impossible for a century. It simply had not learned that they were supposed to be wrong. This is why AlphaGo changed everything.'},
+  {cat:'AlphaGo Era',p:'The 3-3 invasion is no longer unusual.',e:'Before AlphaGo, the immediate 3-3 corner invasion was considered suboptimal. AlphaGo played it routinely and won. By 2018 it was standard professional opening theory.'},
+  {cat:'AlphaGo Era',p:'Study AI games, but do not imitate them blindly.',e:'AlphaGo\u2019s moves are optimal given AlphaGo\u2019s reading. Human players who copy them without understanding the underlying reasoning often find the moves fail in different positions.'},
+  {cat:'AlphaGo Era',p:'Even a superhuman opponent can teach you something.',e:'Fan Hui, the first professional AlphaGo defeated, became one of the first to systematically study its games. His own ranking improved significantly. The teacher can be the student.'}
+];
+
+function prov_build(){
+  var c=document.getElementById('prov-wrap');if(!c||c._built)return;c._built=true;
+  var cats={};
+  PROVERBS.forEach(function(p){if(!cats[p.cat])cats[p.cat]=[];cats[p.cat].push(p);});
+  var html='';
+  Object.keys(cats).forEach(function(cat){
+    html+='<div style="margin-bottom:2rem"><h3 style="font-family:\'Segoe UI\',sans-serif;font-size:9px;font-weight:900;letter-spacing:3px;text-transform:uppercase;color:var(--mist2);margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem">'+cat+'<span style="flex:1;height:1px;background:var(--ink)"></span></h3>';
+    cats[cat].forEach(function(prov){
+      html+='<div class="acc-row"><button class="acc-btn" onclick="accToggle(this)"><span style="font-family:Georgia,serif;font-size:13px;font-style:italic;line-height:1.4">'+prov.p+'</span><span class="acc-caret">\u25bc</span></button><div class="acc-body" style="color:var(--paper2);font-size:12px;line-height:1.7">'+prov.e+'</div></div>';
+    });
+    html+='</div>';
+  });
+  c.innerHTML=html;
+}
+
+/* ====================================================
+   WORLD RANKINGS
+   ==================================================== */
+var RANKINGS=[
+  {rank:1,name:'Shin Jinseo',country:'\u1f1f0\u1f1f7',nat:'KOR',dan:'9p',titles:17,age:24,note:'World #1 since 2022. Youngest ever to hold multiple simultaneous world titles. Dominant in both Korean domestic and international circuit.'},
+  {rank:2,name:'Ke Jie',country:'\u1f1e8\u1f1f3',nat:'CHN',dan:'9p',titles:21,age:27,note:'Former world #1. Faced AlphaGo in 2017. Still one of the top two players in the world. Known for aggressive territorial play.'},
+  {rank:3,name:'Park Junghwan',country:'\u1f1f0\u1f1f7',nat:'KOR',dan:'9p',titles:19,age:30,note:'Consistent top-3 performer for a decade. Known for balanced style \u2014 neither overly territorial nor purely influence-based.'},
+  {rank:4,name:'Yang Dingxin',country:'\u1f1e8\u1f1f3',nat:'CHN',dan:'9p',titles:11,age:25,note:'Rising Chinese star. Won multiple major international titles since 2022. Known for precision reading.'},
+  {rank:5,name:'Gu Zihao',country:'\u1f1e8\u1f1f3',nat:'CHN',dan:'9p',titles:8,age:26,note:'Chinese national champion. Strong international performer with a creative, fighting style.'},
+  {rank:6,name:'Lian Xiao',country:'\u1f1e8\u1f1f3',nat:'CHN',dan:'9p',titles:6,age:28,note:'Consistent Chinese top player. Known for solid, strategic play and endgame precision.'},
+  {rank:7,name:'Byun Sangil',country:'\u1f1f0\u1f1f7',nat:'KOR',dan:'9p',titles:4,age:31,note:'South Korean veteran with consistent international results. Strong in eliminations.'},
+  {rank:8,name:'Mi Yuting',country:'\u1f1e8\u1f1f3',nat:'CHN',dan:'9p',titles:5,age:26,note:'Chinese young star. Multiple major title runs since 2021.'},
+  {rank:9,name:'Ding Hao',country:'\u1f1e8\u1f1f3',nat:'CHN',dan:'9p',titles:3,age:23,note:'One of China\u2019s emerging generation. Multiple Samsung Cup semifinal appearances.'},
+  {rank:10,name:'Kim Jiseok',country:'\u1f1f0\u1f1f7',nat:'KOR',dan:'9p',titles:3,age:33,note:'Veteran Korean professional. Consistent performer in international tournaments over 15+ years.'},
+  {rank:11,name:'Fan Tingyu',country:'\u1f1e8\u1f1f3',nat:'CHN',dan:'9p',titles:2,age:22,note:'One of China\'s youngest top pros. Rapid rise through the ranks with aggressive style.'},
+  {rank:12,name:'Ichiriki Ryo',country:'\u1f1ef\u1f1f5',nat:'JPN',dan:'9p',titles:9,age:28,note:'Japan\'s best internationally competitive player in the current era. Multiple domestic titles.'},
+  {rank:13,name:'Shibano Toramaru',country:'\u1f1ef\u1f1f5',nat:'JPN',dan:'9p',titles:5,age:24,note:'Japan\'s Kisei titleholder. The most promising Japanese player in a generation.'},
+  {rank:14,name:'Xie Erhao',country:'\u1f1e8\u1f1f3',nat:'CHN',dan:'9p',titles:2,age:24,note:'Chinese star with fast international rise. Known for fighting spirit and tactical creativity.'},
+  {rank:15,name:'Kang Dongyun',country:'\u1f1f0\u1f1f7',nat:'KOR',dan:'9p',titles:4,age:31,note:'Korean veteran. Multiple international title appearances over the past decade.'},
+];
+
+function rankings_build(){
+  var c=document.getElementById('rank-table');if(!c||c._built)return;c._built=true;
+  var html='<div style="overflow-x:auto"><table class="cmp" style="min-width:500px"><thead><tr><th>#</th><th>Player</th><th>Country</th><th>Dan</th><th>Int. Titles</th><th>Age</th><th>Notes</th></tr></thead><tbody>';
+  RANKINGS.forEach(function(p){
+    html+='<tr><td style="color:var(--gold);font-weight:700;font-family:Georgia,serif;font-size:14px">'+p.rank+'</td><td style="color:var(--paper);font-weight:700">'+p.name+'</td><td>'+p.nat+'</td><td style="color:var(--vermil2)">'+p.dan+'</td><td style="color:var(--paper);font-weight:700">'+p.titles+'</td><td>'+p.age+'</td><td style="font-size:10px;color:var(--mist)">'+p.note+'</td></tr>';
+  });
+  html+='</tbody></table></div>';
+  c.innerHTML=html;
+  // Country chart
+  var cv=document.getElementById('rank-chart-country');if(cv){
+    var ctx=cv.getContext('2d');
+    var data=[{l:'China',v:68,col:'#c0392b'},{l:'Korea',v:42,col:'#d4a84b'},{l:'Japan',v:18,col:'#3dbd90'},{l:'Other',v:4,col:'#556677'}];
+    var total=data.reduce(function(s,d){return s+d.v;},0);
+    ctx.fillStyle='#0e1219';ctx.fillRect(0,0,cv.width,cv.height);
+    var bw=36,gap=18,ox=40,oy=20,maxH=cv.height-50;
+    data.forEach(function(d,i){var h=Math.round(d.v/total*maxH);var x=ox+i*(bw+gap);var y=oy+maxH-h;ctx.fillStyle=d.col+'33';ctx.fillRect(x,oy,bw,maxH);ctx.fillStyle=d.col;ctx.fillRect(x,y,bw,h);ctx.fillStyle='rgba(232,224,208,.8)';ctx.font='10px Segoe UI';ctx.textAlign='center';ctx.fillText(d.l,x+bw/2,cv.height-8);ctx.fillText(d.v+'%',x+bw/2,y-6);});
+  }
+  // AI impact chart
+  var cv2=document.getElementById('rank-chart-ai');if(cv2){
+    var ctx2=cv2.getContext('2d');
+    ctx2.fillStyle='#0e1219';ctx2.fillRect(0,0,cv2.width,cv2.height);
+    var eras=[{l:'2010-2015',kr:65,cn:30,jp:5},{l:'2016-2019',kr:45,cn:50,jp:5},{l:'2020-2026',kr:35,cn:60,jp:5}];
+    var bw2=50,gap2=30,ox2=30,oy2=20,maxH2=cv2.height-50;
+    eras.forEach(function(era,i){var x=ox2+i*(bw2*3+gap2+10);var h=Math.round(era.kr/100*maxH2);ctx2.fillStyle='#d4a84b';ctx2.fillRect(x,oy2+maxH2-h,bw2,h);var h2=Math.round(era.cn/100*maxH2);ctx2.fillStyle='#c0392b';ctx2.fillRect(x+bw2,oy2+maxH2-h2,bw2,h2);var h3=Math.round(era.jp/100*maxH2);ctx2.fillStyle='#3dbd90';ctx2.fillRect(x+bw2*2,oy2+maxH2-h3,bw2,h3);ctx2.fillStyle='rgba(232,224,208,.7)';ctx2.font='9px Segoe UI';ctx2.textAlign='center';ctx2.fillText(era.l,x+bw2*1.5,cv2.height-8);});
+    ctx2.font='9px Segoe UI';ctx2.textAlign='left';[['\u25a0 Korea','#d4a84b'],['\u25a0 China','#c0392b'],['\u25a0 Japan','#3dbd90']].forEach(function(l,i){ctx2.fillStyle=l[1];ctx2.fillText(l[0],5,14+i*13);});
+  }
+}
+
+/* ====================================================
+   AI BRAIN VISUALIZATIONS
+   ==================================================== */
+function brainPolicy(){
+  var cv=document.getElementById('brain-policy');if(!cv)return;
+  var ctx=cv.getContext('2d');var N=9;
+  var C=Math.floor((cv.width-28)/(N+1));var P=14;
+  ctx.fillStyle='#0e1219';ctx.fillRect(0,0,cv.width,cv.height);
+  ctx.strokeStyle='#3a2a0a';ctx.lineWidth=.7;
+  for(var i=0;i<N;i++){ctx.beginPath();ctx.moveTo(P+i*C,P);ctx.lineTo(P+i*C,P+(N-1)*C);ctx.stroke();ctx.beginPath();ctx.moveTo(P,P+i*C);ctx.lineTo(P+(N-1)*C,P+i*C);ctx.stroke();}
+  // Generate random policy distribution with hotspots
+  var probs=Array(N).fill(null).map(function(){return Array(N).fill(0);});
+  var hotspots=[[1,1],[1,7],[7,1],[7,7],[4,4],[2,4],[4,2],[6,4],[4,6]];
+  hotspots.forEach(function(h){var v=Math.random()*.7+.3;for(var dr=-2;dr<=2;dr++)for(var dc=-2;dc<=2;dc++){var r=h[0]+dr,c=h[1]+dc;if(r>=0&&r<N&&c>=0&&c<N)probs[r][c]=Math.max(probs[r][c],v*Math.exp(-(dr*dr+dc*dc)*.8));}});
+  for(var r=0;r<N;r++)for(var c=0;c<N;c++){var p=probs[r][c];if(p<.05)continue;var x=P+c*C,y=P+r*C,rad=Math.max(1,C*.44);var alpha=Math.min(1,p*1.2);ctx.fillStyle='rgba(192,57,43,'+alpha+')';ctx.beginPath();ctx.arc(x,y,rad,0,Math.PI*2);ctx.fill();}
+  ctx.font='9px Segoe UI';ctx.fillStyle='rgba(232,224,208,.5)';ctx.textAlign='left';ctx.fillText('Policy Network \u2014 move probability heatmap',4,cv.height-4);
+}
+
+function brainValue(){
+  var cv=document.getElementById('brain-value');if(!cv)return;
+  var ctx=cv.getContext('2d');var N=9;
+  var C=Math.floor((cv.width-28)/(N+1));var P=14;
+  ctx.fillStyle='#0e1219';ctx.fillRect(0,0,cv.width,cv.height);
+  ctx.strokeStyle='#1a2a1a';ctx.lineWidth=.7;
+  for(var i=0;i<N;i++){ctx.beginPath();ctx.moveTo(P+i*C,P);ctx.lineTo(P+i*C,P+(N-1)*C);ctx.stroke();ctx.beginPath();ctx.moveTo(P,P+i*C);ctx.lineTo(P+(N-1)*C,P+i*C);ctx.stroke();}
+  // Territory heat: random with bias
+  var bias=Math.random()*.4-.2;
+  for(var r=0;r<N;r++)for(var c=0;c<N;c++){var x=P+c*C,y=P+r*C,rad=Math.max(1,C*.46);
+    var v=Math.random()*.8+.1+bias;v=Math.max(0,Math.min(1,v));
+    var isBlk=v>0.5;var alpha=Math.abs(v-.5)*2;
+    ctx.fillStyle=isBlk?'rgba(192,57,43,'+alpha+')':'rgba(45,138,106,'+alpha+')';
+    ctx.beginPath();ctx.arc(x,y,rad,0,Math.PI*2);ctx.fill();}
+  var score=(50+bias*100).toFixed(0);
+  ctx.font='9px Segoe UI';ctx.fillStyle='rgba(232,224,208,.5)';ctx.textAlign='left';ctx.fillText('Value estimate: Black '+score+'% win probability',4,cv.height-4);
+}
+
+var _mctsNodes=[];var _mctsAnim=null;
+function mctsReset(){
+  if(_mctsAnim){cancelAnimationFrame(_mctsAnim);_mctsAnim=null;}
+  _mctsNodes=[];
+  var cv=document.getElementById('brain-mcts');if(!cv)return;
+  var ctx=cv.getContext('2d');
+  ctx.fillStyle='#0e1219';ctx.fillRect(0,0,cv.width,cv.height);
+  ctx.fillStyle='rgba(232,224,208,.35)';ctx.font='13px Georgia';ctx.textAlign='center';
+  ctx.fillText('Press Run Simulation to watch the MCTS tree expand',cv.width/2,cv.height/2);
+}
+
+function mctsRun(){
+  if(_mctsAnim)return;
+  var cv=document.getElementById('brain-mcts');if(!cv)return;
+  var ctx=cv.getContext('2d');
+  var W=cv.width,H=cv.height;
+  // Root node
+  _mctsNodes=[{x:W/2,y:30,visits:0,winRate:.5,parent:null,children:[],depth:0,label:'Root'}];
+  var frame=0;
+  function step(){
+    // Add nodes progressively
+    if(frame<120){
+      var parent=_mctsNodes[Math.floor(Math.pow(Math.random(),.5)*_mctsNodes.length)];
+      if(parent.depth<4&&parent.children.length<5){
+        var angle=-Math.PI/2+((parent.children.length+1)/(6))*Math.PI*1.2-Math.PI*.6;
+        var dist=55+parent.depth*10;
+        var nx=parent.x+Math.cos(angle)*dist,ny=parent.y+Math.sin(angle)*dist;
+        if(nx>20&&nx<W-20&&ny>20&&ny<H-20){
+          var node={x:nx,y:ny,visits:1,winRate:Math.random()*.6+.2,parent:parent,children:[],depth:parent.depth+1,label:String.fromCharCode(65+parent.children.length)+(parent.children.length+1)};
+          parent.children.push(node);_mctsNodes.push(node);
+        }
+      }
+      // Update visits
+      _mctsNodes.forEach(function(n){if(Math.random()>.6)n.visits=Math.min(500,n.visits+Math.floor(Math.random()*8+1));});
+    }
+    // Draw
+    ctx.fillStyle='#0e1219';ctx.fillRect(0,0,W,H);
+    var maxVisit=Math.max.apply(null,_mctsNodes.map(function(n){return n.visits;}));
+    // Edges
+    _mctsNodes.forEach(function(n){if(!n.parent)return;var alpha=Math.min(.8,n.visits/Math.max(1,maxVisit));ctx.strokeStyle='rgba(184,134,11,'+alpha+')';ctx.lineWidth=.8+alpha*1.5;ctx.beginPath();ctx.moveTo(n.parent.x,n.parent.y);ctx.lineTo(n.x,n.y);ctx.stroke();});
+    // Nodes
+    _mctsNodes.forEach(function(n){var rad=5+Math.log1p(n.visits)*3;var alpha=.3+.7*(n.visits/Math.max(1,maxVisit));var wr=n.winRate;var col='rgba('+(wr>.5?'192,57,43':'45,138,106')+','+alpha+')';ctx.fillStyle=col;ctx.beginPath();ctx.arc(n.x,n.y,rad,0,Math.PI*2);ctx.fill();if(n.visits>20){ctx.fillStyle='rgba(232,224,208,.8)';ctx.font='8px Segoe UI';ctx.textAlign='center';ctx.fillText(n.visits,n.x,n.y+3);}});
+    // Best move indicator
+    if(_mctsNodes[0].children.length){var best=_mctsNodes[0].children.reduce(function(a,b){return a.visits>b.visits?a:b;});ctx.strokeStyle='rgba(232,201,122,.8)';ctx.lineWidth=2;ctx.setLineDash([4,2]);ctx.beginPath();ctx.arc(best.x,best.y,12,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);}
+    ctx.fillStyle='rgba(232,224,208,.45)';ctx.font='9px Segoe UI';ctx.textAlign='left';ctx.fillText('Nodes: '+_mctsNodes.length+' | Max visits: '+maxVisit+' | Red=Black winning, Green=White winning',6,H-6);
+    frame++;
+    if(frame<200)_mctsAnim=requestAnimationFrame(step);else _mctsAnim=null;
+  }
+  _mctsAnim=requestAnimationFrame(step);
+}
+
+function brainTraining(){
+  var cv=document.getElementById('brain-training');if(!cv)return;
+  var ctx=cv.getContext('2d');var W=cv.width,H=cv.height;
+  ctx.fillStyle='#0e1219';ctx.fillRect(0,0,W,H);
+  var pts=[];for(var i=0;i<=100;i++){var x=i/100;var y=1-Math.exp(-x*4.5)*(1+.15*Math.sin(i*1.2)*(1-x));pts.push({x:40+x*(W-60),y:20+(1-y)*(H-45)});}
+  // Grid
+  ctx.strokeStyle='rgba(255,255,255,.06)';ctx.lineWidth=1;
+  for(var i=0;i<=5;i++){var y=20+i*(H-45)/5;ctx.beginPath();ctx.moveTo(40,y);ctx.lineTo(W-20,y);ctx.stroke();}
+  // Axes
+  ctx.strokeStyle='rgba(232,224,208,.3)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(40,20);ctx.lineTo(40,H-25);ctx.lineTo(W-20,H-25);ctx.stroke();
+  // Fill area
+  ctx.beginPath();ctx.moveTo(pts[0].x,H-25);pts.forEach(function(p){ctx.lineTo(p.x,p.y);});ctx.lineTo(pts[pts.length-1].x,H-25);ctx.closePath();
+  ctx.fillStyle='rgba(192,57,43,.12)';ctx.fill();
+  // Line
+  ctx.beginPath();ctx.strokeStyle='#c0392b';ctx.lineWidth=2;pts.forEach(function(p,i){i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y);});ctx.stroke();
+  // Labels
+  ctx.fillStyle='rgba(232,224,208,.6)';ctx.font='10px Segoe UI';ctx.textAlign='center';
+  ['0','10','20','30','40 days'].forEach(function(l,i){ctx.fillText(l,40+i*(W-60)/4,H-10);});
+  ctx.textAlign='right';['0%','25%','50%','75%','100%'].forEach(function(l,i){ctx.fillText(l,36,H-25-i*(H-45)/4);});
+  ctx.textAlign='center';ctx.fillText('Training days (self-play)',W/2,H-2);
+  ctx.save();ctx.translate(12,H/2);ctx.rotate(-Math.PI/2);ctx.fillText('Win rate vs random',0,0);ctx.restore();
+  // Milestones
+  var milestones=[{x:0.08,l:'Learns captures'},{x:0.2,l:'Learns joseki'},{x:0.4,l:'Beats AlphaGo Lee'},{x:0.7,l:'3600 ELO'},{x:1,l:'Superhuman'}];
+  milestones.forEach(function(m){var px=40+m.x*(W-60);var py=pts[Math.floor(m.x*100)].y;ctx.fillStyle='rgba(232,201,122,.7)';ctx.beginPath();ctx.arc(px,py,3,0,Math.PI*2);ctx.fill();});
+}
+
+window.brainPolicy=brainPolicy;window.brainValue=brainValue;window.mctsRun=mctsRun;window.mctsReset=mctsReset;
+
+/* ====================================================
+   JOSEKI ENGINE
+   ==================================================== */
+var JOSEKI=[
+  {name:'3-3 Invasion (AlphaGo)',tag:'AI-discovered',steps:[
+    {r:3,c:3,col:1,note:'Black opens at 4-4 (hoshi). The cornerstone of modern professional opening.'},
+    {r:2,c:2,col:2,note:'White immediately invades at 3-3. Before AlphaGo, this was considered suboptimal. AlphaGo played it routinely. Now standard.'},
+    {r:3,c:2,col:1,note:'Black blocks from the left (standard response).'},
+    {r:2,c:3,col:2,note:'White turns the corner.'},
+    {r:2,c:4,col:1,note:'Black extends.'},
+    {r:1,c:4,col:2,note:'White plays under.'},
+    {r:1,c:3,col:1,note:'Black pushes.'},
+    {r:1,c:2,col:2,note:'White connects in the corner.'},
+    {r:0,c:2,col:1,note:'Black seals the corner from above.'},
+    {r:1,c:1,col:2,note:'White extends. This ends the joseki: White has secure corner territory, Black has a wall facing the centre.'}
+  ]},
+  {name:'Large Knight Corner',tag:'Traditional',steps:[
+    {r:3,c:3,col:1,note:'Black plays the 4-4 point. Standard modern opening.'},
+    {r:5,c:2,col:2,note:'White makes a large knight approach at 6-3. This is the most common joseki starting move in the modern era.'},
+    {r:4,c:4,col:1,note:'Black extends along the top. A solid response that builds shape.'},
+    {r:6,c:3,col:2,note:'White extends down. The corner is shared between both players.'},
+    {r:5,c:3,col:1,note:'Black cuts in to the left side. A fighting response.'},
+    {r:5,c:4,col:2,note:'White blocks. The local battle continues.'},
+    {r:6,c:4,col:1,note:'Black pushes down. Building a wall along the left side.'},
+    {r:6,c:5,col:2,note:'White extends. The joseki is balanced: Black has wall influence, White has local stability.'}
+  ]},
+  {name:'Pincer Joseki',tag:'Traditional',steps:[
+    {r:3,c:3,col:1,note:'Black approaches White\'s 4-4 stone.'},
+    {r:2,c:3,col:2,note:'White plays on the 3rd line. An approach to Black\'s 4-4.'},
+    {r:2,c:5,col:1,note:'Black pincers with a 2-space pincer. This prevents White from settling easily.'},
+    {r:5,c:3,col:2,note:'White jumps out toward the centre. Escaping the pincer.'},
+    {r:4,c:3,col:1,note:'Black extends. Black maintains pressure on the escaping White stone.'},
+    {r:5,c:4,col:2,note:'White extends again. Both players are building frameworks.'},
+    {r:4,c:4,col:1,note:'Black plays a diagonal. Keeping pressure while securing territory.'},
+    {r:6,c:5,col:2,note:'White makes a large jump. The joseki is complete: White has escaped, Black has a framework.'}
+  ]},
+  {name:'Shimari Corner Enclosure',tag:'Foundational',steps:[
+    {r:3,c:3,col:1,note:'Black opens at 4-4 (hoshi).'},
+    {r:3,c:5,col:1,note:'Black plays a 2-space extension to enclose the corner. This is called a shimari \u2014 corner enclosure. With two Black stones, the corner is extremely secure territory.'},
+    {r:0,c:0,col:0,note:'The shimari is now complete. Black owns approximately 9-12 points of corner territory. This serves as a base from which to extend along the sides. A common follow-up is for Black to extend to the third or fourth line on either adjacent side.'}
+  ]},
+  {name:'Attachment Joseki',tag:'AlphaGo Era',steps:[
+    {r:3,c:3,col:1,note:'Black plays 4-4.'},
+    {r:3,c:4,col:2,note:'White immediately attaches to Black\u2019s stone. The attachment joseki was popularised by AlphaGo. Before 2016, it was considered overconcentrated. AlphaGo proved it leads to efficient local positions.'},
+    {r:2,c:4,col:1,note:'Black extends upward. The standard response to the attachment.'},
+    {r:2,c:3,col:2,note:'White plays underneath.'},
+    {r:1,c:3,col:1,note:'Black pushes.'},
+    {r:1,c:2,col:2,note:'White slides.'},
+    {r:2,c:2,col:1,note:'Black blocks from above.'},
+    {r:1,c:4,col:2,note:'White connects. Joseki complete: equal exchange. White has secured the corner approach, Black has thickness.'}
+  ]},
+  {name:'Two-Space High Approach',tag:'Traditional',steps:[
+    {r:3,c:3,col:1,note:'Black opens 4-4.'},
+    {r:5,c:3,col:2,note:'White makes a high approach at 6-4. This creates a wider framework than the standard 6-3 approach.'},
+    {r:5,c:4,col:1,note:'Black attaches immediately. A fighting response.'},
+    {r:4,c:4,col:2,note:'White ataris from above.'},
+    {r:4,c:3,col:1,note:'Black connects.'},
+    {r:3,c:4,col:2,note:'White pushes in from the right.'},
+    {r:2,c:4,col:1,note:'Black blocks.'},
+    {r:2,c:3,col:2,note:'White extends. The joseki has created complex, fighting positions on both sides.'}
+  ]}
+];
+
+var JK={cur:0,step:0,timer:null};
+function josekiBuild(){
+  var c=document.getElementById('joseki-btns');if(!c||c._built)return;c._built=true;
+  var html='';
+  JOSEKI.forEach(function(j,i){html+='<button class="gs-btn'+(i===0?' go-btn':'')+'" onclick="josekiLoad('+i+',this)">'+j.name+'</button>';});
+  c.innerHTML=html;
+  josekiLoad(0,c.firstChild);
+}
+
+function josekiDraw(idx,step){
+  var cv=document.getElementById('joseki-canvas');if(!cv)return;
+  var N=9,C=Math.floor(Math.min(280,cv.parentElement?cv.parentElement.offsetWidth-40:260)/(N+1)),P=Math.max(14,C*.55);
+  cv.width=(N-1)*C+P*2;cv.height=(N-1)*C+P*2;
+  var ctx=cv.getContext('2d');
+  ctx.fillStyle='#c4913a';ctx.fillRect(0,0,cv.width,cv.height);
+  ctx.strokeStyle='#7a5c20';ctx.lineWidth=.8;
+  for(var i=0;i<N;i++){ctx.beginPath();ctx.moveTo(P+i*C,P);ctx.lineTo(P+i*C,P+(N-1)*C);ctx.stroke();ctx.beginPath();ctx.moveTo(P,P+i*C);ctx.lineTo(P+(N-1)*C,P+i*C);ctx.stroke();}
+  [[2,2],[2,6],[6,2],[6,6],[4,4]].forEach(function(s){ctx.fillStyle='#5a420a';ctx.beginPath();ctx.arc(P+s[0]*C,P+s[1]*C,2.2,0,Math.PI*2);ctx.fill();});
+  var jk=JOSEKI[idx];if(!jk)return;
+  var steps=jk.steps.slice(0,step);
+  steps.forEach(function(s,si){if(!s||s.col===0)return;var x=P+s.c*C,y=P+s.r*C,rad=Math.max(1,C*.43);
+    ctx.save();ctx.shadowColor='rgba(0,0,0,.45)';ctx.shadowBlur=3;ctx.shadowOffsetX=1;ctx.shadowOffsetY=1;
+    var g;if(s.col===1){g=ctx.createRadialGradient(x-rad*.28,y-rad*.3,Math.max(0,rad*.04),x,y,Math.max(1,rad));g.addColorStop(0,'#555');g.addColorStop(.5,'#1a1a1a');g.addColorStop(1,'#080808');}
+    else{g=ctx.createRadialGradient(x-rad*.28,y-rad*.3,Math.max(0,rad*.06),x,y,Math.max(1,rad));g.addColorStop(0,'#fff');g.addColorStop(.5,'#f0ece0');g.addColorStop(1,'#d0c8b0');}
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,rad,0,Math.PI*2);ctx.fill();ctx.restore();
+    ctx.fillStyle=s.col===1?'rgba(255,255,255,.75)':'rgba(0,0,0,.65)';ctx.font='bold '+Math.floor(C*.32)+'px Segoe UI';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(si+1,x,y);});
+  if(step>0){var ls=steps[steps.length-1];if(ls&&ls.col!==0){var lx=P+ls.c*C,ly=P+ls.r*C;ctx.strokeStyle=ls.col===1?'rgba(192,57,43,.8)':'rgba(45,138,106,.8)';ctx.lineWidth=2;ctx.beginPath();ctx.arc(lx,ly,C*.46,0,Math.PI*2);ctx.stroke();}}
+}
+
+function josekiLoad(idx,btn){
+  if(JK.timer){clearInterval(JK.timer);JK.timer=null;}
+  document.querySelectorAll('#joseki-btns button').forEach(function(b){b.classList.remove('go-btn');});
+  if(btn)btn.classList.add('go-btn');
+  JK.cur=idx;JK.step=0;
+  var jk=JOSEKI[idx];
+  document.getElementById('joseki-name').textContent=jk.name;
+  document.getElementById('joseki-tag').textContent=jk.tag;
+  document.getElementById('joseki-num').textContent='Step 0 / '+jk.steps.length;
+  document.getElementById('joseki-comment').textContent='Click Next or Play to step through.';
+  document.getElementById('joseki-auto').textContent='\u25b6 Play';
+  josekiDraw(JK.cur,0);
+}
+
+function josekiStep(dir){
+  if(JK.timer){clearInterval(JK.timer);JK.timer=null;document.getElementById('joseki-auto').textContent='\u25b6 Play';}
+  var jk=JOSEKI[JK.cur];if(!jk)return;
+  JK.step=Math.max(0,Math.min(jk.steps.length,JK.step+dir));
+  document.getElementById('joseki-num').textContent='Step '+JK.step+' / '+jk.steps.length;
+  var s=jk.steps[JK.step-1];document.getElementById('joseki-comment').textContent=s?s.note:(JK.step===0?'Click Next or Play.':'Joseki complete.');
+  josekiDraw(JK.cur,JK.step);
+}
+
+function josekiGoTo(step){JK.step=step;josekiStep(0);}
+
+function josekiAutoplay(){
+  var jk=JOSEKI[JK.cur];if(!jk)return;
+  if(JK.timer){clearInterval(JK.timer);JK.timer=null;document.getElementById('joseki-auto').textContent='\u25b6 Play';return;}
+  if(JK.step>=jk.steps.length)JK.step=0;
+  document.getElementById('joseki-auto').textContent='\u23f8 Stop';
+  JK.timer=setInterval(function(){if(JK.step>=jk.steps.length){clearInterval(JK.timer);JK.timer=null;document.getElementById('joseki-auto').textContent='\u25b6 Play';return;}josekiStep(1);},1000);
+}
+window.josekiLoad=josekiLoad;window.josekiStep=josekiStep;window.josekiGoTo=josekiGoTo;window.josekiAutoplay=josekiAutoplay;
+
+/* ====================================================
+   DEEP STATS
+   ==================================================== */
+function statsBuild(){
+  var c=document.getElementById('stat-cards');if(!c||c._built)return;c._built=true;
+  var cards=[
+    {v:'10\xb9\u2077\u2070',l:'Go board positions',d:'vs 10\u2075\u2070 for Chess'},
+    {v:'250',l:'Avg branching factor',d:'vs 35 for Chess'},
+    {v:'200',l:'Avg moves per game',d:'vs 80 for Chess'},
+    {v:'2016',l:'Year Go was solved',d:'19 years after Chess'},
+    {v:'29M',l:'AlphaGo Zero self-play games',d:'in 40 days of training'},
+    {v:'100-0',l:'AlphaGo Zero vs Lee version',d:'after 21 days training'},
+    {v:'4h',l:'Time to master Chess',d:'AlphaZero from scratch'},
+    {v:'3600+',l:'AlphaGo Zero ELO',d:'vs best human ~3750'},
+    {v:'0',l:'Human games used',d:'AlphaGo Zero training data'}
+  ];
+  var html='';
+  cards.forEach(function(cd){html+='<div class="panel" style="text-align:center"><div style="font-family:Georgia,serif;font-size:1.6rem;font-style:italic;color:var(--paper);margin:.25rem 0">'+cd.v+'</div><div style="font-family:\'Segoe UI\',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--mist)">'+cd.l+'</div><div style="font-size:10px;color:var(--mist2);margin-top:.2rem">'+cd.d+'</div></div>';});
+  c.innerHTML=html;
+  // Complexity chart
+  var cv=document.getElementById('stat-complexity');
+  if(cv){var ctx=cv.getContext('2d');var W=cv.width,H=cv.height;
+    ctx.fillStyle='#0e1219';ctx.fillRect(0,0,W,H);
+    var games=[{l:'Checkers',v:20,col:'#3dbd90'},{l:'Chess',v:50,col:'#d4a84b'},{l:'Shogi',v:70,col:'#a855f7'},{l:'Go',v:170,col:'#c0392b'},{l:'Universe\nAtoms',v:80,col:'#556677'}];
+    var maxV=170,bw=Math.floor((W-80)/games.length)-10,oy=30,oh=H-60;
+    ctx.strokeStyle='rgba(255,255,255,.05)';ctx.lineWidth=1;
+    for(var i=0;i<=5;i++){var gy=oy+i*oh/5;ctx.beginPath();ctx.moveTo(55,gy);ctx.lineTo(W-20,gy);ctx.stroke();ctx.fillStyle='rgba(232,224,208,.4)';ctx.font='9px Segoe UI';ctx.textAlign='right';ctx.fillText('10\u2070 '+Math.round((5-i)*maxV/5),52,gy+3);}
+    games.forEach(function(g,i){var bh=Math.round(g.v/maxV*oh);var bx=60+i*(bw+10);var by=oy+oh-bh;ctx.fillStyle=g.col+'22';ctx.fillRect(bx,oy,bw,oh);ctx.fillStyle=g.col;ctx.fillRect(bx,by,bw,bh);ctx.fillStyle='rgba(232,224,208,.8)';ctx.font='9px Segoe UI';ctx.textAlign='center';ctx.fillText(g.l,bx+bw/2,H-8);ctx.fillText('10\u207f'+g.v,bx+bw/2,by-4);});
+    ctx.fillStyle='rgba(232,224,208,.35)';ctx.font='11px Georgia';ctx.textAlign='center';ctx.fillText('Number of possible board positions (log\u2081\u2080 scale)',W/2,H-1);}
+
+  // Training chart
+  var cv2=document.getElementById('stat-training');
+  if(cv2){var ctx2=cv2.getContext('2d');var W2=cv2.width,H2=cv2.height;
+    ctx2.fillStyle='#0e1219';ctx2.fillRect(0,0,W2,H2);
+    var pts=[];for(var i=0;i<=50;i++){var x=i/50;var y=1-Math.exp(-x*5)*(1+.1*Math.sin(i*1.8)*(1-x));pts.push({x:45+x*(W2-60),y:25+(1-y)*(H2-50)});}
+    ctx2.strokeStyle='rgba(255,255,255,.05)';ctx2.lineWidth=1;
+    for(var j=0;j<=4;j++){var gy2=25+j*(H2-50)/4;ctx2.beginPath();ctx2.moveTo(45,gy2);ctx2.lineTo(W2-15,gy2);ctx2.stroke();}
+    ctx2.beginPath();ctx2.moveTo(pts[0].x,H2-25);pts.forEach(function(p){ctx2.lineTo(p.x,p.y);});ctx2.lineTo(pts[pts.length-1].x,H2-25);ctx2.closePath();ctx2.fillStyle='rgba(192,57,43,.1)';ctx2.fill();
+    ctx2.beginPath();ctx2.strokeStyle='#c0392b';ctx2.lineWidth=2;pts.forEach(function(p,i){i===0?ctx2.moveTo(p.x,p.y):ctx2.lineTo(p.x,p.y);});ctx2.stroke();
+    var milestones=[{i:3,l:'Day 1: Captures'},{i:8,l:'Day 3: Joseki'},{i:18,l:'Day 10: Pro level'},{i:30,l:'Day 21: Beats AlphaGo Lee'},{i:50,l:'Day 40: Superhuman'}];
+    milestones.forEach(function(m){var p=pts[m.i];ctx2.fillStyle='rgba(232,201,122,.9)';ctx2.beginPath();ctx2.arc(p.x,p.y,4,0,Math.PI*2);ctx2.fill();ctx2.fillStyle='rgba(232,224,208,.65)';ctx2.font='8px Segoe UI';ctx2.textAlign='center';ctx2.fillText(m.l,p.x,p.y-8);});
+    ctx2.fillStyle='rgba(232,224,208,.4)';ctx2.font='9px Segoe UI';ctx2.textAlign='center';ctx2.fillText('Self-play iterations (AlphaGo Zero \u2014 40 days)',W2/2,H2-1);}
+
+  // Conquest chart
+  var cv3=document.getElementById('stat-conquest');
+  if(cv3){var ctx3=cv3.getContext('2d');var W3=cv3.width,H3=cv3.height;
+    ctx3.fillStyle='#0e1219';ctx3.fillRect(0,0,W3,H3);
+    var games3=[{y:1992,l:'Backgammon\nTD-Gammon',col:'#3dbd90'},{y:1997,l:'Chess\nDeep Blue',col:'#d4a84b'},{y:2007,l:'Checkers\nChinook',col:'#a855f7'},{y:2016,l:'Go\nAlphaGo',col:'#c0392b'}];
+    var minY=1990,maxY=2020;var bw3=Math.floor((W3-60)/games3.length)-8;
+    games3.forEach(function(g,i){var bx=35+i*(bw3+8);var progress=(g.y-minY)/(maxY-minY);var bh=Math.round(progress*(H3-60));var by=(H3-35)-bh;ctx3.fillStyle=g.col+'22';ctx3.fillRect(bx,35,bw3,H3-60);ctx3.fillStyle=g.col;ctx3.fillRect(bx,by,bw3,bh);ctx3.fillStyle='rgba(232,224,208,.8)';ctx3.font='8px Segoe UI';ctx3.textAlign='center';ctx3.fillText(g.l.split('\n')[0],bx+bw3/2,H3-18);ctx3.fillStyle=g.col;ctx3.fillText(g.y,bx+bw3/2,by-4);});}
+
+  // ELO chart
+  var cv4=document.getElementById('stat-elo');
+  if(cv4){var ctx4=cv4.getContext('2d');var W4=cv4.width,H4=cv4.height;
+    ctx4.fillStyle='#0e1219';ctx4.fillRect(0,0,W4,H4);
+    var versions=[{l:'AlphaGo\nFan',elo:3144,col:'#3dbd90'},{l:'AlphaGo\nLee',elo:3520,col:'#d4a84b'},{l:'AlphaGo\nMaster',elo:3740,col:'#a855f7'},{l:'AlphaGo\nZero',elo:5185,col:'#c0392b'},{l:'Human\n#1',elo:3750,col:'#556677'}];
+    var minE=3000,maxE=5400;var bw4=Math.floor((W4-60)/versions.length)-6;
+    versions.forEach(function(v,i){var bx=30+i*(bw4+6);var bh=Math.round((v.elo-minE)/(maxE-minE)*(H4-60));var by=(H4-35)-bh;ctx4.fillStyle=v.col+'22';ctx4.fillRect(bx,35,bw4,H4-60);ctx4.fillStyle=v.col;ctx4.fillRect(bx,by,bw4,bh);ctx4.fillStyle='rgba(232,224,208,.8)';ctx4.font='8px Segoe UI';ctx4.textAlign='center';ctx4.fillText(v.l.split('\n')[0],bx+bw4/2,H4-18);ctx4.fillStyle='rgba(232,224,208,.9)';ctx4.fillText(v.elo,bx+bw4/2,by-4);});}
+}
+
+
+/* -- INIT -- */
+document.addEventListener('DOMContentLoaded',function(){
+  gsInit();
+  showDiff('beginner',document.querySelector('.diff-btn.active'));
+  _rulesDone=true;
+  rpLoad(0);
+  pzLoad(0);
+  prov_build();
+  josekiBuild();
+  mctsReset();
+});
+</script>
+
+<!-- PLAY 19x19 -->
+<div class="page" id="page-play19">
+  <div class="wrap">
+    <div class="stamp stamp-jade">Human vs AI</div>
+    <h2 class="sec-title">Play Go &mdash; 19&times;19</h2>
+    <div class="red-rule"></div>
+    <p class="prose" style="margin-bottom:1.5rem">Full-size board. You play Black. The AI plays White. Click any empty intersection to place your stone. The AI responds immediately.</p>
+    <div class="gs-shell">
+      <div class="gs-top">
+        <div class="gs-ttl">&#x25CF; You (Black) &nbsp;&times;&nbsp; &#x25CB; AI (White) &mdash; 19&times;19</div>
+        <div class="gs-badge" id="p19-badge">Ready</div>
+      </div>
+      <div class="gs-players">
+        <div class="gs-player"><div class="gs-pname">&#x25CF; You &mdash; Black</div><div class="gs-ptag">Click board to place</div><div class="gs-pcap" id="p19-b-cap">0</div><div class="gs-ptag" style="margin-top:.2rem">captures</div></div>
+        <div class="gs-vs">versus</div>
+        <div class="gs-player"><div class="gs-pname">&#x25CB; AI &mdash; White</div><div class="gs-ptag">Heuristic engine</div><div class="gs-pcap" id="p19-w-cap">0</div><div class="gs-ptag" style="margin-top:.2rem">captures</div></div>
+      </div>
+      <div class="gs-body">
+        <div class="gs-bar"><div class="gs-bar-b" id="p19-bar-b" style="width:50%"></div><div class="gs-bar-w" id="p19-bar-w" style="width:50%"></div></div>
+        <div class="gs-status-line" id="p19-status">Press New Game to start</div>
+        <canvas id="p19-canvas" style="cursor:crosshair;border-radius:4px;max-width:100%;touch-action:none"></canvas>
+        <div class="gs-btns">
+          <button class="gs-btn go-btn" onclick="p19NewGame()">&#x25B6; New Game</button>
+          <button class="gs-btn" onclick="p19Pass()">Pass</button>
+          <button class="gs-btn danger" onclick="p19Resign()">Resign</button>
+          <button class="gs-btn" onclick="p19Undo()" id="p19-undo-btn">&#x21B6; Undo</button>
+        </div>
+        <div class="gs-log" id="p19-log"><div class="gs-le" style="color:var(--mist2)">— game log —</div></div>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="panel"><div class="panel-title">How to play</div><div style="font-family:'Segoe UI',sans-serif;font-size:12px;color:var(--paper2);line-height:1.85"><div>Click any empty intersection to place a Black stone.</div><div>AI responds immediately with White.</div><div style="margin-top:.5rem;color:var(--vermil2)">Pass when you have no good moves.</div><div style="color:var(--vermil2)">Resign to concede the game.</div><div style="color:var(--vermil2)">Undo to retract your last move.</div></div></div>
+      <div class="panel"><div class="panel-title">19&times;19 facts</div><div style="font-family:'Segoe UI',sans-serif;font-size:12px;color:var(--paper2);line-height:1.85"><div>361 intersections &mdash; the professional standard.</div><div>Average game: ~200 moves, 60&ndash;90 minutes.</div><div>10<sup>170</sup> possible positions.</div><div style="color:var(--mist);margin-top:.35rem">This AI uses depth-2 heuristics. AlphaGo operates at superhuman level beyond any handcrafted engine.</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- GAME REPLAYER -->
+<div class="page" id="page-replay">
+  <div class="wrap">
+    <div class="stamp stamp-red">AlphaGo Archives</div>
+    <h2 class="sec-title">Historic Game Replayer</h2>
+    <div class="red-rule"></div>
+    <p class="prose" style="margin-bottom:1.5rem">Step through the most important Go games in history. Navigate move by move with live expert commentary on what each player was thinking &mdash; and what the AI calculated.</p>
+    <div class="gs-shell" style="margin-bottom:1.5rem">
+      <div class="gs-top">
+        <select id="rp-sel" onchange="rpLoad(this.value)" style="background:var(--slate);border:1px solid var(--ink3);color:var(--paper);font-family:Georgia,serif;font-size:12px;font-style:italic;padding:.35rem .6rem;border-radius:4px;flex:1">
+          <option value="0">Game 4: Lee Sedol vs AlphaGo (2016) &mdash; The Divine Move</option>
+          <option value="1">Game 2: Lee Sedol vs AlphaGo (2016) &mdash; Move 37</option>
+          <option value="2">AlphaGo Master vs Ke Jie &mdash; Game 1 (2017)</option>
+          <option value="3">AlphaGo Zero Self-Play Game (2017)</option>
+        </select>
+        <div class="gs-badge" id="rp-badge">Game 4</div>
+      </div>
+      <div class="gs-body" style="gap:.75rem">
+        <canvas id="rp-canvas" style="border-radius:4px;max-width:100%"></canvas>
+        <div id="rp-comment" style="font-family:Georgia,serif;font-size:13px;font-style:italic;color:var(--paper2);text-align:center;min-height:54px;padding:.5rem;line-height:1.7;max-width:520px"></div>
+        <div class="gs-btns">
+          <button class="gs-btn" onclick="rpFirst()">&laquo;</button>
+          <button class="gs-btn" onclick="rpPrev()">&#x276C;</button>
+          <div style="font-family:'Segoe UI',sans-serif;font-size:11px;color:var(--mist);align-self:center;min-width:64px;text-align:center" id="rp-num">Move 0</div>
+          <button class="gs-btn" onclick="rpNext()">&#x276D;</button>
+          <button class="gs-btn" onclick="rpLast()">&raquo;</button>
+          <button class="gs-btn go-btn" id="rp-auto" onclick="rpToggleAuto()">&#x25B6; Auto</button>
+        </div>
+        <input type="range" id="rp-slider" min="0" max="0" value="0" oninput="rpSlider(this.value)" style="width:100%;max-width:480px;accent-color:var(--vermil);cursor:pointer">
+      </div>
+    </div>
+    <div id="rp-info" class="panel"></div>
+  </div>
+</div>
+
+<!-- PUZZLES -->
+<div class="page" id="page-puzzles">
+  <div class="wrap">
+    <div class="stamp stamp-red">Tsume-Go</div>
+    <h2 class="sec-title">Life &amp; Death Puzzles</h2>
+    <div class="red-rule"></div>
+    <p class="prose" style="margin-bottom:1.5rem">Tsume-go &mdash; the art of life and death. These problems are solved daily by professionals. Find the one move that keeps your group alive &mdash; or kills the opponent's.</p>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem" id="pz-sel-row"></div>
+    <div class="gs-shell">
+      <div class="gs-top"><div class="gs-ttl" id="pz-ttl">Puzzle 1</div><div class="gs-badge" id="pz-badge">Black to play</div></div>
+      <div class="gs-body">
+        <div class="gs-status-line" id="pz-status">Find the move that keeps Black alive.</div>
+        <canvas id="pz-canvas" style="cursor:crosshair;border-radius:4px;max-width:100%;touch-action:none"></canvas>
+        <div class="gs-btns">
+          <button class="gs-btn" onclick="pzHint()">&#x1F4A1; Hint</button>
+          <button class="gs-btn danger" onclick="pzReset()">&#x21BA; Reset</button>
+          <button class="gs-btn" onclick="pzSkip()">Skip &#x276D;</button>
+        </div>
+        <div style="font-family:Georgia,serif;font-size:12px;font-style:italic;color:var(--paper3);text-align:center;padding:.5rem;max-width:480px;line-height:1.65" id="pz-explain"></div>
+      </div>
+    </div>
+    <div class="panel" style="margin-top:1rem"><div class="panel-title">Session score</div><div style="font-family:Georgia,serif;font-size:1.6rem;font-style:italic;color:var(--paper);text-align:center;padding:.5rem 0" id="pz-score">0 / 0 solved</div></div>
+  </div>
+</div>
+
+<!-- PROVERBS -->
+<div class="page" id="page-proverbs">
+  <div class="wrap">
+    <div class="stamp stamp-gold">Ancient Wisdom</div>
+    <h2 class="sec-title">Go Proverbs</h2>
+    <div class="red-rule"></div>
+    <p class="prose" style="margin-bottom:2rem">Compressed strategic wisdom passed down through centuries of play. Each proverb encodes a principle that applies across thousands of positions. Professionals internalize these before their first dan ranking.</p>
+    <div id="prov-wrap"></div>
+  </div>
+</div>
+
+<!-- RANKINGS -->
+<div class="page" id="page-rankings">
+  <div class="wrap">
+    <div class="stamp stamp-gold">World Rankings</div>
+    <h2 class="sec-title">Top Players &mdash; 2025/2026</h2>
+    <div class="red-rule"></div>
+    <p class="prose" style="margin-bottom:1.5rem">Current world Go rankings by international tournament performance. China dominates the modern era. Korea produced the most prolific individual champions of the 1990s&ndash;2010s.</p>
+    <div id="rank-table"></div>
+    <div class="divider"></div>
+    <div class="two-col" style="margin-top:1.25rem">
+      <div class="panel"><div class="panel-title">Title wins by country (2010&ndash;2026)</div><canvas id="rank-chart-country" width="340" height="200" style="max-width:100%;display:block;margin:.5rem auto"></canvas></div>
+      <div class="panel"><div class="panel-title">AlphaGo impact on win rates</div><canvas id="rank-chart-ai" width="340" height="200" style="max-width:100%;display:block;margin:.5rem auto"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- AI BRAIN -->
+<div class="page" id="page-aibrain">
+  <div class="wrap">
+    <div class="stamp stamp-red">Inside AlphaGo</div>
+    <h2 class="sec-title">How the AI Thinks</h2>
+    <div class="red-rule"></div>
+    <p class="prose" style="margin-bottom:1.5rem">AlphaGo does not calculate every possible move. It <em>imagines</em> the most promising lines, evaluates them, and selects. Here is what happens inside the machine for every single move it makes &mdash; rendered live.</p>
+    <div class="two-col" style="margin-bottom:1.5rem">
+      <div class="panel" style="border-color:rgba(192,57,43,.25)">
+        <div class="panel-title">Policy Network &mdash; move heatmap</div>
+        <canvas id="brain-policy" width="320" height="200" style="max-width:100%;border-radius:4px;display:block;margin:.5rem auto"></canvas>
+        <button class="gs-btn go-btn" onclick="brainPolicy()" style="display:block;margin:.5rem auto">&#x25B6; Resample</button>
+        <div style="font-family:'Segoe UI',sans-serif;font-size:11px;color:var(--paper2);line-height:1.7;margin-top:.5rem">The policy network outputs a probability over all legal moves. Bright red = high probability, black = pruned. This reduces ~250 candidates to ~5, making deep search tractable.</div>
+      </div>
+      <div class="panel" style="border-color:rgba(45,138,106,.25)">
+        <div class="panel-title">Value Network &mdash; territory estimate</div>
+        <canvas id="brain-value" width="320" height="200" style="max-width:100%;border-radius:4px;display:block;margin:.5rem auto"></canvas>
+        <button class="gs-btn" onclick="brainValue()" style="display:block;margin:.5rem auto">&#x25B6; Resample</button>
+        <div style="font-family:'Segoe UI',sans-serif;font-size:11px;color:var(--paper2);line-height:1.7;margin-top:.5rem">The value network outputs a single win-probability from 0&ndash;1 for any board position. Red = Black territory, green = White. One neural network pass replaces thousands of simulations.</div>
+      </div>
+    </div>
+    <div class="panel" style="margin-bottom:1.5rem;border-color:rgba(184,134,11,.2)">
+      <div class="panel-title">Monte Carlo Tree Search &mdash; live simulation</div>
+      <canvas id="brain-mcts" width="700" height="260" style="max-width:100%;border-radius:4px;display:block;margin:.75rem auto"></canvas>
+      <div class="gs-btns" style="margin:.75rem 0">
+        <button class="gs-btn go-btn" onclick="mctsRun()">&#x25B6; Run Simulation</button>
+        <button class="gs-btn" onclick="mctsReset()">&#x21BA; Reset</button>
+      </div>
+      <div style="font-family:'Segoe UI',sans-serif;font-size:11px;color:var(--paper2);line-height:1.7">MCTS builds a search tree by simulating promising continuations. Each node: visit count + win rate. Brighter = more explored. The best move = the child with the highest visit count after the simulation budget is spent.</div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Self-play training curve &mdash; AlphaGo Zero (40 days)</div>
+      <canvas id="brain-training" width="700" height="180" style="max-width:100%;border-radius:4px;display:block;margin:.5rem auto"></canvas>
+      <div style="font-family:'Segoe UI',sans-serif;font-size:11px;color:var(--paper2);line-height:1.7;margin-top:.5rem">Win rate of each successive network generation against the starting random player. 29 million self-play games. 40 days. The curve you see is 40 days of machine evolution &mdash; from random to superhuman.</div>
+    </div>
+  </div>
+</div>
+
+<!-- JOSEKI -->
+<div class="page" id="page-joseki">
+  <div class="wrap">
+    <div class="stamp stamp-mist">Opening Theory</div>
+    <h2 class="sec-title">Joseki &mdash; Corner Sequences</h2>
+    <div class="red-rule"></div>
+    <p class="prose" style="margin-bottom:1.5rem">Joseki are pre-analysed corner sequences that result in locally balanced play. Learning joseki is like learning Chess openings &mdash; patterns encoding centuries of wisdom, now being rewritten by AI.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:.5rem;margin-bottom:1.25rem" id="joseki-btns"></div>
+    <div class="gs-shell">
+      <div class="gs-top"><div class="gs-ttl" id="joseki-name">Select a joseki</div><div class="gs-badge" id="joseki-tag">Traditional</div></div>
+      <div class="gs-body" style="gap:.75rem">
+        <canvas id="joseki-canvas" style="border-radius:4px;max-width:100%"></canvas>
+        <div class="gs-btns">
+          <button class="gs-btn" onclick="josekiStep(-1)">&#x276C; Prev</button>
+          <div style="font-family:'Segoe UI',sans-serif;font-size:11px;color:var(--mist);align-self:center;min-width:60px;text-align:center" id="joseki-num">Step 0</div>
+          <button class="gs-btn" onclick="josekiStep(1)">Next &#x276D;</button>
+          <button class="gs-btn go-btn" id="joseki-auto" onclick="josekiAutoplay()">&#x25B6; Play</button>
+          <button class="gs-btn danger" onclick="josekiGoTo(0)">&#x21BA; Reset</button>
+        </div>
+        <div style="font-family:Georgia,serif;font-size:13px;font-style:italic;color:var(--paper2);text-align:center;min-height:44px;padding:.35rem;line-height:1.65" id="joseki-comment"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DEEP STATS -->
+<div class="page" id="page-stats">
+  <div class="wrap">
+    <div class="stamp stamp-jade">Data Intelligence</div>
+    <h2 class="sec-title">Deep Statistics</h2>
+    <div class="red-rule"></div>
+    <p class="prose" style="margin-bottom:1.5rem">The numbers that explain why Go is the hardest board game ever devised &mdash; and why it took until 2016 to build a machine that could master it.</p>
+    <div class="three-col" style="margin-bottom:1.5rem" id="stat-cards"></div>
+    <div class="panel" style="margin-bottom:1.5rem"><div class="panel-title">Complexity comparison &mdash; log scale</div><canvas id="stat-complexity" width="700" height="260" style="max-width:100%;display:block;margin:.75rem auto;border-radius:4px"></canvas></div>
+    <div class="panel" style="margin-bottom:1.5rem"><div class="panel-title">AlphaGo training progression &mdash; win rate vs self-play iterations</div><canvas id="stat-training" width="700" height="220" style="max-width:100%;display:block;margin:.75rem auto;border-radius:4px"></canvas></div>
+    <div class="two-col">
+      <div class="panel"><div class="panel-title">AI conquest timeline</div><canvas id="stat-conquest" width="340" height="200" style="max-width:100%;display:block;margin:.5rem auto;border-radius:4px"></canvas></div>
+      <div class="panel"><div class="panel-title">AlphaGo lineage &mdash; ELO ratings</div><canvas id="stat-elo" width="340" height="200" style="max-width:100%;display:block;margin:.5rem auto;border-radius:4px"></canvas></div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
